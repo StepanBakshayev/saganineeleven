@@ -13,31 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-from xml.etree import ElementTree
-from enum import Enum
+from django.template import base
 
-
-Token = Enum('Event', 'text terminal', __name__)
-
-
-def stringify(
-	file,
-	Lexer
-) -> str:
-	text = []
-	lexer = Lexer()
-	for (event, element) in ElementTree.iterparse(file):
-		tree = element.iter()
-		# pull root. It is node by self.
-		next(tree)
-		if next(tree, None) is not None:
-			continue
-		if element.text is None:
-			continue
-		lexer.feed(element.text)
-		for event, elem in parser.read_events():
-			pass
-		print(event, element, element.text)
-		text.append(element.text or '')
-
-	return ''.join(text)
+class Lexer:
+	pass
