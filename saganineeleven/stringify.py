@@ -20,31 +20,26 @@ from enum import Enum
 Token = Enum('Event', 'text terminal', module=__name__)
 
 
-class DummyLexer:
-	"""
-	DummyLexer is sample of Lexer.
-	"""
-	slots = 'buffer', 'is_closed'
+# XXX: write this after real lexer
+# class DummyLexer:
+# 	"""
+# 	DummyLexer is sample of Lexer.
+# 	"""
+# 	slots = 'chunk',
 
-	def __init__(self):
-		self.buffer = []
-		self.is_closed = False
+# 	def __init__(self):
+# 		self.chunk = None
 
-	def feed(self, chunk):
-		pass
+# 	def feed(self, chunk):
+# 		self.chunk = chunk
 
-	def close(self):
-		self.is_closed = True
-
-	def read_events(self):
-		if self.is_closed:
-			return (Token.text, None),
-		return ()
+# 	def read_events(self):
+# 		return (Token.text, self.chunk),
 
 
 def stringify(
 	file,
-	Lexer=DummyLexer
+	Lexer
 ) -> str:
 	text = []
 	lexer = Lexer()
@@ -60,12 +55,11 @@ def stringify(
 			continue
 		lexer.feed(element.text)
 		for event, elem in lexer.read_events():
-			pass
-		print(event, element, element.text)
+			print(event, elem)
 		text.append(element.text or '')
 
 	lexer.close()
 	for event, elem in lexer.read_events():
-		pass
+		print(event, elem)
 
 	return ''.join(text)

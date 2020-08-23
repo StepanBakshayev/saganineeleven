@@ -16,22 +16,23 @@
 import saganineeleven
 import saganineeleven.stringify
 import saganineeleven.contrib
+import saganineeleven.contrib.django
 import saganineeleven.contrib.docx
 import saganineeleven.contrib.odt
 from pathlib import Path
 
 files = (
-	(saganineeleven.contrib.docx, 'hello.docx'),
-	(saganineeleven.contrib.odt, 'hello.odt'),
+	(saganineeleven.contrib.docx, saganineeleven.contrib.django.Lexer, 'hello.docx'),
+	(saganineeleven.contrib.odt, saganineeleven.contrib.django.Lexer, 'hello.odt'),
 )
 root = Path(__file__).absolute().parent
 
-for handler, name in files:
+for handler, Lexer, name in files:
 	with (root / name).open('rb') as source:
 		print(source)
 		for file in handler.iter(source):
 			print(file)
-			text = saganineeleven.stringify.stringify(file)
+			text = saganineeleven.stringify.stringify(file, Lexer)
 			print(text)
 			print()
 		print('--')
