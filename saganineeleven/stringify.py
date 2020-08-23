@@ -17,27 +17,55 @@ from xml.etree import ElementTree
 from enum import Enum
 
 
-Token = Enum('Event', 'text terminal', __name__)
+Token = Enum('Event', 'text terminal', module=__name__)
+
+
+class DummyLexer:
+	"""
+	DummyLexer is sample of Lexer.
+	"""
+	slots = 'buffer', 'is_closed'
+
+	def __init__(self):
+		self.buffer = []
+		self.is_closed = False
+
+	def feed(self, chunk):
+		pass
+
+	def close(self):
+		self.is_closed = True
+
+	def read_events(self):
+		if self.is_closed:
+			return (Token.text, None),
+		return ()
 
 
 def stringify(
 	file,
-	Lexer
+	Lexer=DummyLexer
 ) -> str:
 	text = []
 	lexer = Lexer()
-	for (event, element) in ElementTree.iterparse(file):
+	# XXX: this is not pull parser. Consider in the future the possibility of using XMLPullParser.
+	for (event, element) in ElementTree.iterparse(file, events=('end',)):
 		tree = element.iter()
 		# pull root. It is node by self.
 		next(tree)
+		# The invariant is childfree nodes with text.
 		if next(tree, None) is not None:
 			continue
 		if element.text is None:
 			continue
 		lexer.feed(element.text)
-		for event, elem in parser.read_events():
+		for event, elem in lexer.read_events():
 			pass
 		print(event, element, element.text)
 		text.append(element.text or '')
+
+	lexer.close()
+	for event, elem in lexer.read_events():
+		pass
 
 	return ''.join(text)
