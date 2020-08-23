@@ -46,7 +46,35 @@ class Element:
 
 
 class elementstr(str):
-	pass
+	__slots__ = 'elements',
+
+	def __iadd__(self, other):
+		new = self.__class__(f'{self!s}{other!s}')
+		new.elements = getattr(self, 'elements', ()) + getattr(self, 'other', ())
+		return new
+
+	def __getitem__(self, key):
+		assert isinstance(key, slice)
+		assert key.step in (None, 1)
+		key = key.indices(len(self))
+		new = super().__getitem__(key)
+		new.elements = ()
+		# move forward by start
+		position = 0
+		for start_index, element in enumerate(self.elements):
+			boundary = position + element.length
+			# start is in between
+			if position <= slice.start < boundary:
+				new.elements += Element(element)
+				break
+			position = boundary
+		# XXX: handle situation
+		# start can be out of range, procced only if there are some started elements
+		if new.elements:
+			# feed new elemets by stop
+			if key.stop:
+				pass
+		return new
 
 
 def stringify(
