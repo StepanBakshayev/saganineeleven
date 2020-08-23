@@ -16,19 +16,18 @@
 from django.template.base import tag_re
 from saganineeleven.stringify import Token
 from collections import deque
+from dataclasses import dataclass, field
 
 
+@dataclass(init=True)
 class Lexer:
 	"""
 	Lexer is for django 3.1. Each django version can change details of implementaion template system.
 	This module uses private API.
 	"""
-	slots = 'buffer', 'is_closed', 'events'
-
-	def __init__(self):
-		self.buffer = ''
-		self.is_closed = False
-		self.events = deque()
+	buffer: str = field(default='', init=False)
+	is_closed: bool = field(default=False, init=False)
+	events: deque = field(default_factory=deque, init=False)
 
 	def feed(self, chunk):
 		"""
