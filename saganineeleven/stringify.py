@@ -15,8 +15,10 @@
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from xml.etree import ElementTree
 from enum import Enum
-from dataclasses import dataclass, field, make_dataclass
+from dataclasses import dataclass, field, make_dataclass, replace
 from collections import deque, Counter
+from itertools import chain
+from typing import Tuple
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -43,6 +45,8 @@ class Element:
 	path: str
 	offset: int
 	length: int
+	# XXX: it is for future supporting namespace alias in path to reduce bloat
+	# namespaces: Tuple[Tuple[str, str]] = ()
 
 
 class elementstr(str):
@@ -50,37 +54,47 @@ class elementstr(str):
 
 	def __iadd__(self, other):
 		new = self.__class__(f'{self!s}{other!s}')
-		new.elements = getattr(self, 'elements', ()) + getattr(self, 'other', ())
+		new.elements = getattr(self, 'elements', ()) + getattr(other, 'elements', ())
 		return new
 
 	def __getitem__(self, key):
 		assert isinstance(key, slice)
 		assert key.step in (None, 1)
-		key = key.indices(len(self))
-		new = super().__getitem__(key)
+		new = self.__class__(super().__getitem__(key))
 		new.elements = ()
-		# move forward by start
-		position = 0
-		for start_index, element in enumerate(self.elements):
-			boundary = position + element.length
-			# start is in between
-			if position <= slice.start < boundary:
-				new.elements += Element(element)
-				break
-			position = boundary
-		# XXX: handle situation
-		# start can be out of range, procced only if there are some started elements
-		if new.elements:
-			# feed new elemets by stop
-			if key.stop:
-				pass
+
+		start, stop, _ = key.indices(len(self))
+		# mircooptimization + flow requirement
+		if start < len(self):
+			cursor = 0
+			elements = iter(self.elements)
+			for element in elements:
+				if cursor <= start < element.length + cursor:
+					break
+				cursor += element.length
+			# there are valid element anyway guaranteed by upper condition guard
+			element_offet = start - cursor
+			start_element = replace(element, offset=(element.offset+element_offet), length=(element.length-element_offet))
+			cursor += element_offet
+			new_elements = []
+			for element in chain((start_element,), elements):
+				element = replace(element, length=min(element.length, stop-cursor))
+				new_elements.append(element)
+				cursor += element.length
+				if cursor == stop:
+					break
+			new.elements = tuple(new_elements)
+
 		return new
+
+	def __repr__(self):
+		return f"<elementstr: '{self!s}', {getattr(self, 'elements', ())}>"
 
 
 def stringify(
 	file,
 	Lexer
-) -> str:
+) -> list:
 	text = []
 	lexer = Lexer()
 	route = deque()
@@ -118,14 +132,13 @@ def stringify(
 
 			lexer.feed(chunk)
 			for event, elem in lexer.read_events():
-				print(event, elem)
-			text.append(element.text or '')
+				text.append(elem)
 
 		else:
 			raise RuntimeError(f'Unsupported event type {event} from ElementTree.iterparse().')
 
 	lexer.close()
 	for event, elem in lexer.read_events():
-		print(event, elem)
+		text.append(elem)
 
-	return ''.join(text)
+	return text

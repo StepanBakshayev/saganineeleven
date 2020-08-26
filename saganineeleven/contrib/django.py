@@ -52,7 +52,9 @@ class Lexer:
 			self.events.append((Token.terminal, self.buffer[start:end]))
 			last_position = end + 1
 
-		self.buffer = self.buffer[last_position:]
+		# perform cutting if there is a any match
+		if last_position:
+			self.buffer = self.buffer[last_position:]
 
 	def close(self):
 		self.is_closed = True
@@ -60,7 +62,7 @@ class Lexer:
 	def read_events(self):
 		while self.events:
 			yield self.events.popleft()
-		if self.is_closed:
+		if self.is_closed and self.buffer:
 			yield Token.text, self.buffer
 			self.buffer = None
 			self.events = None
