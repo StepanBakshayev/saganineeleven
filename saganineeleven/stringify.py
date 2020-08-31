@@ -16,9 +16,10 @@
 from xml.etree import ElementTree
 from enum import Enum
 from dataclasses import dataclass, field, make_dataclass, replace
-from collections import deque, Counter
-from itertools import chain
+from collections import deque, Counter, namedtuple
+from itertools import chain, islice
 from typing import Tuple
+import re
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -45,8 +46,7 @@ class Element:
 	path: str
 	offset: int
 	length: int
-	# XXX: it is for future supporting namespace alias in path to reduce bloat
-	# namespaces: Tuple[Tuple[str, str]] = ()
+	namespaces: Tuple[str]
 
 
 class elementstr(str):
@@ -97,14 +97,14 @@ def stringify(
 ) -> list:
 	text = []
 	lexer = Lexer()
-	route = deque()
+	Node = namedtuple('Node', 'tag counter')
+	route = deque((Node(None, Counter()),))
 	# XXX: this is not pull parser. Consider in the future the possibility of using XMLPullParser.
 	for (event, element) in ElementTree.iterparse(file, events=('start', 'end',)):
 		if event == 'start':
 			tag = element.tag
-			if route:
-				route[-1][1][tag] += 1
-			route.append((tag, Counter()))
+			route[-1].counter[tag] += 1
+			route.append(Node(tag, Counter()))
 
 		elif event == 'end':
 			route.pop()
@@ -121,14 +121,31 @@ def stringify(
 			if element.text is None:
 				continue
 
-			chunk = elementstr(element.text)
+			namespaces = []
 			path = deque()
 			element_tag = element.tag
+			namespace_re = re.compile('^{(?P<namespace>.*?)}(?P<tagname>.*?)$')
 			for r in reversed(route):
-				path.appendleft(f'{element_tag}[{r[1][element_tag]}]')
-				element_tag = r[0]
-			path.appendleft(f'{element_tag}[1]')
-			chunk.elements = Element('/'.join(path), 0, len(chunk)),
+				order = r.counter[element_tag]
+				match = namespace_re.match(element_tag)
+				if match:
+					namespace, tagname = match.group('namespace', 'tagname')
+					try:
+						index = namespaces.index(namespace)
+					except ValueError:
+						namespaces.append(namespace)
+						index = len(namespaces) - 1
+					element_tag = f'n{index}:{tagname}'
+
+				path.appendleft(f'{element_tag}[{order}]')
+				element_tag = r.tag
+				if element_tag is None:
+					break
+
+			chunk = elementstr(element.text)
+			# xml.etree.ElementTree.ElementTree.find does not support match for root element of tree. Cut head.
+			# XXX: there are root element in namespaces. It is nonsense.
+			chunk.elements = Element(f"./{'/'.join(islice(path, 1, None))}", 0, len(chunk), tuple(namespaces)),
 
 			lexer.feed(chunk)
 			for event, elem in lexer.read_events():

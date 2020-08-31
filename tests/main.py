@@ -21,10 +21,11 @@ import saganineeleven.contrib.docx
 import saganineeleven.contrib.odt
 from pathlib import Path
 from dataclasses import replace
+from xml.etree.ElementTree import parse
 
 
 def test_elementstr_single():
-	element = saganineeleven.stringify.Element('///', 0, 10)
+	element = saganineeleven.stringify.Element('///', 0, 10, ())
 	elementstr = saganineeleven.stringify.elementstr
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length))))
@@ -44,7 +45,7 @@ def test_elementstr_single():
 
 
 def test_elementstr_many():
-	element = saganineeleven.stringify.Element('///', 0, 10)
+	element = saganineeleven.stringify.Element('///', 0, 10, ())
 	elementstr = saganineeleven.stringify.elementstr
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length)))*3)
@@ -64,7 +65,7 @@ def test_elementstr_many():
 
 
 def test_elementstr_iadd():
-	element = saganineeleven.stringify.Element('///', 0, 10)
+	element = saganineeleven.stringify.Element('///', 0, 10, ())
 	elementstr = saganineeleven.stringify.elementstr
 
 	empty_empty = elementstr()
@@ -94,6 +95,13 @@ for handler, Lexer, name in files:
 		for file in handler.iter(source):
 			print(file)
 			text = saganineeleven.stringify.stringify(file, Lexer)
-			print(repr(text))
+			print(''.join(text))
+			file.seek(0)
+			tree = parse(file)
+			for part in text:
+				for element in part.elements:
+					found = tree.findall(element.path, {f'n{i}': name for i, name in enumerate(element.namespaces)})
+					assert found, element.path
+					assert len(found) == 1
 			print()
 		print('--')
