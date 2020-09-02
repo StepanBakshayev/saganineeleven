@@ -13,6 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+#
+# PYTHONPATH=`pwd` python tests/main.py
+#
 import saganineeleven
 import saganineeleven.stringify
 import saganineeleven.contrib
@@ -79,9 +82,19 @@ def test_elementstr_iadd():
 	assert something_something.elements == (element,) + (element,)
 
 
+def test_element_pack():
+	element = saganineeleven.stringify.Element('abc', 0, 10, ('n0', 'n1'))
+
+	buffer = element.pack()
+	unpacked_element = saganineeleven.stringify.Element.unpack(buffer)
+	assert element == unpacked_element, (element, unpacked_element)
+
+
 test_elementstr_single()
 test_elementstr_many()
 test_elementstr_iadd()
+test_element_pack()
+
 
 files = (
 	(saganineeleven.contrib.docx, saganineeleven.contrib.django.Lexer, 'hello.docx'),
@@ -95,13 +108,13 @@ for handler, Lexer, name in files:
 		for file in handler.iter(source):
 			print(file)
 			text = saganineeleven.stringify.stringify(file, Lexer)
-			print(''.join(text))
-			file.seek(0)
-			tree = parse(file)
-			for part in text:
-				for element in part.elements:
-					found = tree.findall(element.path, {f'n{i}': name for i, name in enumerate(element.namespaces)})
-					assert found, element.path
-					assert len(found) == 1
+			print(f'{text!r}')
+			# file.seek(0)
+			# tree = parse(file)
+			# for part in text:
+			# 	for element in part.elements:
+			# 		found = tree.findall(element.path, {f'n{i}': name for i, name in enumerate(element.namespaces)})
+			# 		assert found, element.path
+			# 		assert len(found) == 1
 			print()
 		print('--')

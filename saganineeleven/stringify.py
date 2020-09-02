@@ -15,11 +15,13 @@
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from xml.etree import ElementTree
 from enum import Enum
-from dataclasses import dataclass, field, make_dataclass, replace
+from dataclasses import dataclass, field, fields, make_dataclass, replace
 from collections import deque, Counter, namedtuple
 from itertools import chain, islice
 from typing import Tuple
 import re
+from struct import pack, unpack_from, calcsize
+from operator import attrgetter
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -48,6 +50,76 @@ class Element:
 	length: int
 	namespaces: Tuple[str]
 
+	def pack(self):
+		assert tuple(map(attrgetter('name'), fields(self))) == ('path', 'offset', 'length', 'namespaces')
+		buffer = bytearray()
+
+		# XXX: p(ascal) string while unpacking size is undeterminal.
+		# use a low-level handmade solution.
+		max_length = 255
+		path_bytes = self.path.encode('utf-8')
+		chunks = (path_bytes[i:i+max_length] for i in range(0, len(path_bytes), max_length))
+		for chunk in chunks:
+			chunk_length = len(chunk)
+			buffer.extend(pack(f'!B{chunk_length}s', chunk_length, chunk))
+		buffer.extend(pack('!B0s', 0, b''))
+
+		buffer.extend(pack('!Q', self.offset))
+
+		buffer.extend(pack('!Q', self.length))
+
+		for namespace in self.namespaces:
+			namespace_bytes = namespace.encode('utf-8')
+			chunks = (namespace_bytes[i:i+max_length] for i in range(0, len(namespace_bytes), max_length))
+			for chunk in chunks:
+				chunk_length = len(chunk)
+				buffer.extend(pack(f'!B{chunk_length}s', chunk_length, chunk))
+			buffer.extend(pack('!B0s', 0, b''))
+
+		return buffer
+
+	@classmethod
+	def unpack(cls, buffer):
+		assert tuple(map(attrgetter('name'), fields(cls))) == ('path', 'offset', 'length', 'namespaces')
+
+		offset = 0
+		element_path = []
+		while True:
+			chunk_length = unpack_from('!B', buffer, offset)[0]
+			offset += calcsize('!B')
+			if not chunk_length:
+				break
+			chunk = unpack_from(f'!{chunk_length}s', buffer, offset)[0]
+			offset += calcsize(f'!{chunk_length}s')
+			element_path.append(chunk.decode('utf-8'))
+
+		element_offset = unpack_from('!Q', buffer, offset)[0]
+		offset += calcsize('!Q')
+
+		element_length = unpack_from('!Q', buffer, offset)[0]
+		offset += calcsize('!Q')
+
+		element_namespaces = []
+		while offset < len(buffer):
+			namespace = []
+			while True:
+				chunk_length = unpack_from('!B', buffer, offset)[0]
+				offset += calcsize('!B')
+				if not chunk_length:
+					break
+				chunk = unpack_from(f'!{chunk_length}s', buffer, offset)[0]
+				offset += calcsize(f'!{chunk_length}s')
+				namespace.append(chunk.decode('utf-8'))
+			element_namespaces.append(''.join(namespace))
+
+		return cls(
+			''.join(element_path),
+			element_offset,
+			element_length,
+			tuple(element_namespaces),
+		)
+
+
 
 class elementstr(str):
 	__slots__ = 'elements',
@@ -73,9 +145,9 @@ class elementstr(str):
 					break
 				cursor += element.length
 			# there are valid element anyway guaranteed by upper condition guard
-			element_offet = start - cursor
-			start_element = replace(element, offset=(element.offset+element_offet), length=(element.length-element_offet))
-			cursor += element_offet
+			element_offset = start - cursor
+			start_element = replace(element, offset=(element.offset+element_offset), length=(element.length-element_offset))
+			cursor += element_offset
 			new_elements = []
 			for element in chain((start_element,), elements):
 				element = replace(element, length=min(element.length, stop-cursor))
@@ -94,7 +166,7 @@ class elementstr(str):
 def stringify(
 	file,
 	Lexer
-) -> list:
+) -> str:
 	text = []
 	lexer = Lexer()
 	Node = namedtuple('Node', 'tag counter')
@@ -158,4 +230,12 @@ def stringify(
 	for event, elem in lexer.read_events():
 		text.append(elem)
 
-	return text
+	buffer = []
+	for chunk in text:
+		offset = 0
+		for element in chunk.elements:
+			buffer.append(element.pack().decode('utf-8', 'surrogateescape'))
+			buffer.append(str.__getitem__(chunk, slice(offset, offset+element.length)))
+			offset += element.length
+
+	return ''.join(buffer)
