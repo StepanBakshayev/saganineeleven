@@ -17,6 +17,9 @@ from django.template.base import tag_re
 from saganineeleven.stringify import Token, elementstr
 from collections import deque
 from dataclasses import dataclass, field
+from django.template import Context
+from django.template.base import Template
+from django.template.engine import Engine
 
 
 @dataclass(init=True)
@@ -66,3 +69,10 @@ class Lexer:
 			yield Token.text, self.buffer
 			self.buffer = None
 			self.events = None
+
+
+def render(template_string, context):
+	"Shortcut."
+	engine = Engine(debug=False, loaders=())
+	template = Template(template_string, engine=engine)
+	return template.render(Context(context, autoescape=False))
