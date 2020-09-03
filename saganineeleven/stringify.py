@@ -75,6 +75,7 @@ class Element:
 				chunk_length = len(chunk)
 				buffer.extend(pack(f'!B{chunk_length}s', chunk_length, chunk))
 			buffer.extend(pack('!B0s', 0, b''))
+		buffer.extend(pack('!B0s', 0, b''))
 
 		return buffer
 
@@ -100,7 +101,7 @@ class Element:
 		offset += calcsize('!Q')
 
 		element_namespaces = []
-		while offset < len(buffer):
+		while True:
 			namespace = []
 			while True:
 				chunk_length = unpack_from('!B', buffer, offset)[0]
@@ -110,6 +111,8 @@ class Element:
 				chunk = unpack_from(f'!{chunk_length}s', buffer, offset)[0]
 				offset += calcsize(f'!{chunk_length}s')
 				namespace.append(chunk.decode('utf-8'))
+			if not namespace:
+				break
 			element_namespaces.append(''.join(namespace))
 
 		return cls(

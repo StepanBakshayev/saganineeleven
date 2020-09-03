@@ -83,11 +83,16 @@ def test_elementstr_iadd():
 
 
 def test_element_pack():
-	element = saganineeleven.stringify.Element('abc', 0, 10, ('n0', 'n1'))
+	elements = (
+		saganineeleven.stringify.Element('abc', 0, 10, ('n0', 'n1')),
+		saganineeleven.stringify.Element('', 1, 0, ()),
+		saganineeleven.stringify.Element('a'*255*2, 1, 0, ('n0'*255*2, 'n1'*255*2)),
+	)
 
-	buffer = element.pack()
-	unpacked_element = saganineeleven.stringify.Element.unpack(buffer)
-	assert element == unpacked_element, (element, unpacked_element)
+	for element in elements:
+		buffer = element.pack()
+		unpacked_element = saganineeleven.stringify.Element.unpack(buffer)
+		assert element == unpacked_element, (element, unpacked_element)
 
 
 test_elementstr_single()
