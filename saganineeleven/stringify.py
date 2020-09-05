@@ -166,14 +166,18 @@ class elementstr(str):
 		return f"<elementstr: '{self!s}', {getattr(self, 'elements', ())}>"
 
 
+ContentType = Enum('ContentType', 'plaintext template', module=__name__)
+
+
 def stringify(
 	file,
 	Lexer
-) -> str:
+) -> Tuple[ContentType, str]:
 	text = []
 	lexer = Lexer()
 	Node = namedtuple('Node', 'tag counter')
 	route = deque((Node(None, Counter()),))
+	content_type = ContentType.plaintext
 	# XXX: this is not pull parser. Consider in the future the possibility of using XMLPullParser.
 	for (event, element) in ElementTree.iterparse(file, events=('start', 'end',)):
 		if event == 'start':
@@ -223,22 +227,36 @@ def stringify(
 			chunk.elements = Element(f"./{'/'.join(islice(path, 1, None))}", 0, len(chunk), tuple(namespaces)),
 
 			lexer.feed(chunk)
-			for event, elem in lexer.read_events():
-				text.append(elem)
+			for token, element in lexer.read_events():
+				if token is Token.terminal:
+					content_type = ContentType.template
+					solid = elementstr(element)
+					# XXX: this is wrong. It is Poor's man solution.
+					solid.elements = replace(element.elements[0], length=len(element)),
+					element = solid
+				text.append(element)
 
 		else:
 			raise RuntimeError(f'Unsupported event type {event} from ElementTree.iterparse().')
 
 	lexer.close()
-	for event, elem in lexer.read_events():
-		text.append(elem)
+	for token, element in lexer.read_events():
+		if token is Token.terminal:
+			content_type = ContentType.template
+			solid = elementstr(element)
+			# XXX: this is wrong. It is Poor's man solution.
+			solid.elements = replace(element.elements[0], length=len(element)),
+			element = solid
+		text.append(element)
 
 	buffer = []
 	for chunk in text:
 		offset = 0
 		for element in chunk.elements:
+			buffer.append('\ud800')
 			buffer.append(element.pack().decode('utf-8', 'surrogateescape'))
+			buffer.append('\ud801')
 			buffer.append(str.__getitem__(chunk, slice(offset, offset+element.length)))
 			offset += element.length
 
-	return ''.join(buffer)
+	return content_type, ''.join(buffer)

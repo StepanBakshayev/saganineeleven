@@ -102,8 +102,8 @@ test_element_pack()
 
 
 files = (
-	(saganineeleven.contrib.docx, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'hello.docx', {'name': 'World'}),
-	(saganineeleven.contrib.odt, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'hello.odt', {'name': 'World'}),
+	(saganineeleven.contrib.docx, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'substitute_variable.docx', {'variable': '♟ ♔'}),
+	(saganineeleven.contrib.odt, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'substitute_variable.odt', {'variable': '♟ ♔'}),
 )
 root = Path(__file__).absolute().parent
 
@@ -112,10 +112,13 @@ for handler, Lexer, render, name, context in files:
 		print(source)
 		for file in handler.iter(source):
 			print(file)
-			text = saganineeleven.stringify.stringify(file, Lexer)
-			print(f'{text!r}')
-			print('.')
-			print(f'{render(text, context)!r}')
+			content_type, text = saganineeleven.stringify.stringify(file, Lexer)
+			if content_type is content_type.template:
+				print(f'{text!r}')
+				print('.')
+				print(f'{render(text, context)!r}')
+			else:
+				print('plain text')
 			# file.seek(0)
 			# tree = parse(file)
 			# for part in text:
