@@ -40,10 +40,14 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 	"""
 	# XXX: It is memory consumption here.
 	origin_tree = parse(origin)
+
 	# XXX: It is just for starting implementation to copy root.
 	# XXX: It is bad design to copy each element from one tree to another.
-	# XXX: Consider TreeBuilder. We don't use or rely of nodes in memory.
 	result_tree = ElementTree(origin_tree.getroot().copy())
+	# Free tinking. Postpone ideas by finishing cycling.
+	# TreeBuilder is used to construct ElementTree instead of incremental dump as I think at fist.
+	# XXX: We don't use or rely of nodes in memory. Consider writing incremental dump against xml.etree.ElementTree._serialize_xml.
+	# XXX: We don't need parse origin neither. We copy substring from original to result.
 
 	def iterate(tape):
 		in_element = True
