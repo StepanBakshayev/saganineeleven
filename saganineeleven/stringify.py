@@ -23,6 +23,7 @@ import re
 from struct import pack, unpack_from, calcsize
 from operator import attrgetter
 
+
 Token = Enum('Event', 'text terminal', module=__name__)
 
 

@@ -13,19 +13,36 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-
 from xml.etree.ElementTree import ElementTree, parse
 from .stringify import element_re, Element
 from itertools import islice
+from collections import namedtuple, deque
+import re
+
+
+TagIndex = namedtuple('TagIndex', 'namespace name index')
+
+
+def fill_gap(branch: deque, position: Tuple[TagIndex], destination: Tuple[TagIndex]):
+	# ветка содержит:
+	# - оригинальный элемент, используется для выпотрощения детей
+	# - клон, используется для операции append
+	# опеределить сколько позиций нужно выкинуть с хвоста из ветки по разнице position-destination
+	# начать с хвоста ветки отбрасывать элементы скидывая детей в клоны по порядку, пока не достигнется количество позиций.
+	# начать заполнять ветку вглубь добавляя элементы в хвост и скидывая детей в дерево через клонов.
+	# ВНИМАНИЕ! нужно уметь копировать целыми поддеревьями, потому что может быть p[2]/r[4], а следом p[5]/r[2]. Нужно скопировать поддерево p[3], p[4] и внутри p[5] ещё родственников до r[2].
+	pass
 
 
 def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 	"""
 	Copy nodes from origin. Replace text with rendered variables.
 	"""
+	# XXX: It is memory consumption here.
 	origin_tree = parse(origin)
 	# XXX: It is just for starting implementation to copy root.
 	# XXX: It is bad design to copy each element from one tree to another.
+	# XXX: Consider TreeBuilder. We don't use or rely of nodes in memory.
 	result_tree = ElementTree(origin_tree.getroot().copy())
 
 	def iterate(tape):
@@ -40,7 +57,19 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 				element_dump = None
 			in_element = not in_element
 
-	previous_path = None
+	# XXX: return to Element and rewrite it for structuted path.
+	path_re = re.compile(r'^n(?P<namespace>\d+):(?P<name>[^\[]+)\[(?P<index>\d+)\]$')
+	def parse_path(string, namespaces):
+		root, *parts = string.split('/')
+		for part in parts:
+			kwargs = path_re.match(part).groupdict()
+			yield TagIndex(
+				namespace=namespaces[int(kwargs['namespace'])],
+				name=kwargs['name'],
+				index=int(kwargs['index'])-1,
+			)
+
+	previous_path = ()
 	# у нас есть орининал
 	# у нас есть текущая позиция и изменения от неё.
 	# у нас нет (как бы подразумевая только параметры функции и текущий рассматриваемый элемент)
@@ -51,11 +80,17 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 	location_changed = False
 	# получили элемент
 	for element, text in iterate(tape):
-		print(element, text)
 	# находимся ли мы в том же элементе?
-		location_changed = previous_path != element.path
+		path = tuple(parse_path(element.path, element.namespaces))
+		location_changed = previous_path != path
 		if location_changed:
 			origin_offset = 0
+
+		fill_gap()
+
+		# Можно использовать ссылки на элементы в памяти и прям туда фигачить.
+		# Element.append
+		previous_path = path
 
 	# че-то нужно сделать
 	# если да, тогда произвести подстановку текста.

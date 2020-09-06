@@ -22,6 +22,7 @@ ENCODING = 'UTF-8'
 
 def iter(source):
 	with ZipFile(source, 'r') as file:
+		# XXX: this is wrong to filter out xml.
 		yield from map(file.open, filter(lambda i: i.filename.endswith('.xml'), file.infolist()))
 
 
