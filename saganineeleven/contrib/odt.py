@@ -17,6 +17,7 @@ from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
 
 
 CHUNK_SIZE = max(256 * 1024, ZipExtFile.MIN_READ_SIZE) # in bytes
+ENCODING = 'UTF-8'
 
 
 def iter(source):

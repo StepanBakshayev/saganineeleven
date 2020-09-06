@@ -16,20 +16,16 @@
 #
 # PYTHONPATH=`pwd` python tests/main.py
 #
-import saganineeleven
-import saganineeleven.stringify
-import saganineeleven.contrib
-import saganineeleven.contrib.django
-import saganineeleven.contrib.docx
-import saganineeleven.contrib.odt
+from saganineeleven import stringify, executor
+from saganineeleven.contrib import django, docx, odt
 from pathlib import Path
 from dataclasses import replace
 from xml.etree.ElementTree import parse
 
 
 def test_elementstr_single():
-	element = saganineeleven.stringify.Element('///', 0, 10, ())
-	elementstr = saganineeleven.stringify.elementstr
+	element = stringify.Element('///', 0, 10, ())
+	elementstr = stringify.elementstr
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length))))
 	estr.elements = element,
@@ -48,8 +44,8 @@ def test_elementstr_single():
 
 
 def test_elementstr_many():
-	element = saganineeleven.stringify.Element('///', 0, 10, ())
-	elementstr = saganineeleven.stringify.elementstr
+	element = stringify.Element('///', 0, 10, ())
+	elementstr = stringify.elementstr
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length)))*3)
 	estr.elements = (element,) * 3
@@ -68,8 +64,8 @@ def test_elementstr_many():
 
 
 def test_elementstr_iadd():
-	element = saganineeleven.stringify.Element('///', 0, 10, ())
-	elementstr = saganineeleven.stringify.elementstr
+	element = stringify.Element('///', 0, 10, ())
+	elementstr = stringify.elementstr
 
 	empty_empty = elementstr()
 	empty_empty += elementstr()
@@ -84,14 +80,14 @@ def test_elementstr_iadd():
 
 def test_element_pack():
 	elements = (
-		saganineeleven.stringify.Element('abc', 0, 10, ('n0', 'n1')),
-		saganineeleven.stringify.Element('', 1, 0, ()),
-		saganineeleven.stringify.Element('a'*255*2, 1, 0, ('n0'*255*2, 'n1'*255*2)),
+		stringify.Element('abc', 0, 10, ('n0', 'n1')),
+		stringify.Element('', 1, 0, ()),
+		stringify.Element('a'*255*2, 1, 0, ('n0'*255*2, 'n1'*255*2)),
 	)
 
 	for element in elements:
 		buffer = element.pack()
-		unpacked_element = saganineeleven.stringify.Element.unpack(buffer)
+		unpacked_element = stringify.Element.unpack(buffer)
 		assert element == unpacked_element, (element, unpacked_element)
 
 
@@ -102,8 +98,8 @@ test_element_pack()
 
 
 files = (
-	(saganineeleven.contrib.docx, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'substitute_variable.docx', {'variable': '♟ ♔'}),
-	(saganineeleven.contrib.odt, saganineeleven.contrib.django.Lexer, saganineeleven.contrib.django.render, 'substitute_variable.odt', {'variable': '♟ ♔'}),
+	(docx, django.Lexer, django.render, 'substitute_variable.docx', {'variable': '♟ ♔'}),
+	(odt, django.Lexer, django.render, 'substitute_variable.odt', {'variable': '♟ ♔'}),
 )
 root = Path(__file__).absolute().parent
 
@@ -114,20 +110,22 @@ for handler, Lexer, render, name, context in files:
 		for file in handler.iter(source):
 			with file:
 				print(file)
-				content_type, text = saganineeleven.stringify.stringify(file, Lexer)
-				if content_type is content_type.template:
-					print(f'{text!r}')
-					print('.')
-					print(f'{render(text, context)!r}')
-				else:
-					print('plain text')
-				file.seek(0)
+				content_type, text = stringify.stringify(file, Lexer)
 				with handler.open(destination, file.name) as target:
-					while True:
-						chunk = file.read(handler.CHUNK_SIZE)
-						if not chunk:
-							break
-						target.write(chunk)
+					if content_type is content_type.template:
+						rendered_template = render(text, context)
+						file.seek(0)
+						tree = executor.enforce(file, rendered_template, None)
+						# XXX: ElementTree supports only injected writer. It does not yield data instead.
+						# It is the best sample of Classic, OOP, Bad design.
+						tree.write(target, encoding=handler.ENCODING)
+					else:
+						file.seek(0)
+						while True:
+							chunk = file.read(handler.CHUNK_SIZE)
+							if not chunk:
+								break
+							target.write(chunk)
 			# file.seek(0)
 			# tree = parse(file)
 			# for part in text:
