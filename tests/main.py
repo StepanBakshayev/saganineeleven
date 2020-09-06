@@ -108,17 +108,26 @@ files = (
 root = Path(__file__).absolute().parent
 
 for handler, Lexer, render, name, context in files:
-	with (root / name).open('rb') as source:
+	path = root / name
+	with path.open('rb') as source, handler.create(root/f'{path.stem}_rendered{path.suffix}') as destination:
 		print(source)
 		for file in handler.iter(source):
-			print(file)
-			content_type, text = saganineeleven.stringify.stringify(file, Lexer)
-			if content_type is content_type.template:
-				print(f'{text!r}')
-				print('.')
-				print(f'{render(text, context)!r}')
-			else:
-				print('plain text')
+			with file:
+				print(file)
+				content_type, text = saganineeleven.stringify.stringify(file, Lexer)
+				if content_type is content_type.template:
+					print(f'{text!r}')
+					print('.')
+					print(f'{render(text, context)!r}')
+				else:
+					print('plain text')
+				file.seek(0)
+				with handler.open(destination, file.name) as target:
+					while True:
+						chunk = file.read(handler.CHUNK_SIZE)
+						if not chunk:
+							break
+						target.write(chunk)
 			# file.seek(0)
 			# tree = parse(file)
 			# for part in text:
