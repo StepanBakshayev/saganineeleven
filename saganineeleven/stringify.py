@@ -167,6 +167,8 @@ class elementstr(str):
 
 
 ContentType = Enum('ContentType', 'plaintext template', module=__name__)
+# surrogates U+DC80 to U+DCFF
+element_re = re.compile(r'\ud800([\U00000000-\U0010ffff]+?)\ud801')
 
 
 def stringify(

@@ -105,6 +105,9 @@ root = Path(__file__).absolute().parent
 
 for handler, Lexer, render, name, context in files:
 	path = root / name
+	# XXX: there are bugs here.
+	# - folders are not copied
+	# - files other then xml are not copied
 	with path.open('rb') as source, handler.create(root/f'{path.stem}_rendered{path.suffix}') as destination:
 		print(source)
 		for file in handler.iter(source):
@@ -119,6 +122,7 @@ for handler, Lexer, render, name, context in files:
 						# XXX: ElementTree supports only injected writer. It does not yield data instead.
 						# It is the best sample of Classic, OOP, Bad design.
 						tree.write(target, encoding=handler.ENCODING)
+
 					else:
 						file.seek(0)
 						while True:
