@@ -181,7 +181,7 @@ def stringify(
 	Node = namedtuple('Node', 'tag counter')
 	route = deque((Node(None, Counter()),))
 	content_type = ContentType.plaintext
-	# XXX: this is not pull parser. Consider in the future the possibility of using XMLPullParser.
+	# XXX: ElementTree construct tree in memory anyway. This consumes memory for nothing.
 	for (event, element) in ElementTree.iterparse(file, events=('start', 'end',)):
 		if event == 'start':
 			tag = element.tag

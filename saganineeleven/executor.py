@@ -18,7 +18,7 @@ from .stringify import element_re, Element
 from itertools import islice
 from collections import namedtuple, deque
 import re
-
+from typing import Tuple
 
 TagIndex = namedtuple('TagIndex', 'namespace name index')
 
@@ -90,7 +90,7 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 		if location_changed:
 			origin_offset = 0
 
-		fill_gap()
+		# fill_gap()
 
 		# Можно использовать ссылки на элементы в памяти и прям туда фигачить.
 		# Element.append
