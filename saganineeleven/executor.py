@@ -14,16 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from xml.etree.ElementTree import ElementTree, parse
-from .stringify import element_re, Element
+from .straighten import element_re, Element
 from itertools import islice
 from collections import namedtuple, deque
 import re
-from typing import Tuple
+from typing import Tuple, Sequence
 
 TagIndex = namedtuple('TagIndex', 'namespace name index')
 
 
-def fill_gap(branch: deque, position: Tuple[TagIndex], destination: Tuple[TagIndex]):
+# This is stupid copy. It does not do anything more. Function handling cycles search another place.
+def mirror_nodes(source: ElementTree, destination: ElementTree, position: Tuple[TagIndex], target: Tuple[TagIndex]):
 	# ветка содержит:
 	# - оригинальный элемент, используется для выпотрощения детей
 	# - клон, используется для операции append
@@ -31,12 +32,27 @@ def fill_gap(branch: deque, position: Tuple[TagIndex], destination: Tuple[TagInd
 	# начать с хвоста ветки отбрасывать элементы скидывая детей в клоны по порядку, пока не достигнется количество позиций.
 	# начать заполнять ветку вглубь добавляя элементы в хвост и скидывая детей в дерево через клонов.
 	# ВНИМАНИЕ! нужно уметь копировать целыми поддеревьями, потому что может быть p[2]/r[4], а следом p[5]/r[2]. Нужно скопировать поддерево p[3], p[4] и внутри p[5] ещё родственников до r[2].
+	# position and target have:
+	# - shared head
+	# - different tail
+	#
 	pass
 
 
-def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
+def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middleware) -> ElementTree:
 	"""
-	Copy nodes from origin. Replace text with rendered variables.
+	Enforce contains those operations:
+	- substitute variables
+	- skip terminals
+	- drop conditions body
+	- clone partial or allocate place for new iteration of cycle body
+	- mirror unchanged text in between
+
+	Substitute requires managing text of element. Substitute can happen many times in one element or completely replace whole text.
+	Skip terminals is a like substitute with zero length text. It opens door to ignore some nodes from origin.
+	Drop conditions body requires accurate cut part of tree (partial clone in terms of this kind implementation) on boundary of different levels of hierarchy.
+	Vague operation of cycle body requires look behind on origin tree and construct new branch for inside operation from above.
+	Mirror unchanged text (in terms of template) is a suspect for variant of operations from above.
 	"""
 	# XXX: It is memory consumption here.
 	origin_tree = parse(origin)
@@ -48,18 +64,6 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 	# TreeBuilder is used to construct ElementTree instead of incremental dump as I think at fist.
 	# XXX: We don't use or rely of nodes in memory. Consider writing incremental dump against xml.etree.ElementTree._serialize_xml.
 	# XXX: We don't need parse origin neither. We copy substring from original to result.
-
-	def iterate(tape):
-		in_element = True
-		element_dump = None
-		# XXX: There are big memory consumption and big cpu utilization.
-		for bit in islice(element_re.split(tape), 1, None):
-			if in_element:
-				element_dump = bit
-			else:
-				yield Element.unpack(element_dump.encode('utf-8', 'surrogateescape')), bit
-				element_dump = None
-			in_element = not in_element
 
 	# XXX: return to Element and rewrite it for structuted path.
 	path_re = re.compile(r'^n(?P<namespace>\d+):(?P<name>[^\[]+)\[(?P<index>\d+)\]$')
@@ -80,20 +84,22 @@ def enforce(origin: 'FileLikeObject', tape: str, middleware) -> ElementTree:
 	# информации как соотностися позиция текущая (в потенциально измененом Element.text) и ориганильном.
 	# достаточно завести offset, что бы обозначить на чем оборвалась раскройка оригинального Element.text.
 	# offset указывает на оригинальный Element.text.
-	origin_offset = 0
+	# origin_offset = 0
 	location_changed = False
-	# получили элемент
-	for element, text in iterate(tape):
-	# находимся ли мы в том же элементе?
+	for element, text in parse_string(tape):
 		path = tuple(parse_path(element.path, element.namespaces))
-		location_changed = previous_path != path
-		if location_changed:
-			origin_offset = 0
+		# markers:
+		# [operation on elements]
+		# - cycle: path is behind or equal, less then or equal
+		# - false condition, nonterminal symbols, absentee system block: path is ahead, greater then
+		# [operation on element.text]
+		# - substitute, false conditions, absentee system block: path is equal
+		#    - cycle: offset is behind or equal, less then or equal
+		#    - false condition, nonterminal symbols, absentee system block: offset is ahead, greater then
+		# location_changed = previous_path != path
+		# if location_changed:
+		# 	origin_offset = 0
 
-		# fill_gap()
-
-		# Можно использовать ссылки на элементы в памяти и прям туда фигачить.
-		# Element.append
 		previous_path = path
 
 	# че-то нужно сделать

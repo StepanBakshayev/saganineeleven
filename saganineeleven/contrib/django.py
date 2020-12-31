@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from django.template.base import tag_re
-from saganineeleven.stringify import Token, elementstr
+from saganineeleven.straighten import Token, elementstr
 from collections import deque
 from dataclasses import dataclass, field
 from django.template import Context

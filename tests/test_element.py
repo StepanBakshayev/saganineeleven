@@ -16,16 +16,13 @@
 #
 # PYTHONPATH=`pwd` python tests/main.py
 #
-from saganineeleven import stringify, executor
-from saganineeleven.contrib import django, docx, odt
-from pathlib import Path
 from dataclasses import replace
-from xml.etree.ElementTree import parse
+
+from saganineeleven.straighten import Element, elementstr
 
 
 def test_elementstr_single():
-	element = stringify.Element('///', 0, 10, ())
-	elementstr = stringify.elementstr
+	element = Element((0, 'r'), ('',), 0, 10)
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length))))
 	estr.elements = element,
@@ -44,8 +41,7 @@ def test_elementstr_single():
 
 
 def test_elementstr_many():
-	element = stringify.Element('///', 0, 10, ())
-	elementstr = stringify.elementstr
+	element = Element((0, 'r'), ('',), 0, 10)
 
 	estr = elementstr(''.join(map(chr, range(ord('0'), ord('0')+element.length)))*3)
 	estr.elements = (element,) * 3
@@ -64,8 +60,7 @@ def test_elementstr_many():
 
 
 def test_elementstr_iadd():
-	element = stringify.Element('///', 0, 10, ())
-	elementstr = stringify.elementstr
+	element = Element((0, 'r'), ('',), 0, 10)
 
 	empty_empty = elementstr()
 	empty_empty += elementstr()
@@ -76,66 +71,3 @@ def test_elementstr_iadd():
 	something_something += something_something
 	assert something_something == str(''.join(map(chr, range(ord('0'), ord('0')+element.length)))) + str(''.join(map(chr, range(ord('0'), ord('0')+element.length))))
 	assert something_something.elements == (element,) + (element,)
-
-
-def test_element_pack():
-	elements = (
-		stringify.Element('abc', 0, 10, ('n0', 'n1')),
-		stringify.Element('', 1, 0, ()),
-		stringify.Element('a'*255*2, 1, 0, ('n0'*255*2, 'n1'*255*2)),
-	)
-
-	for element in elements:
-		buffer = element.pack()
-		unpacked_element = stringify.Element.unpack(buffer)
-		assert element == unpacked_element, (element, unpacked_element)
-
-
-test_elementstr_single()
-test_elementstr_many()
-test_elementstr_iadd()
-test_element_pack()
-
-
-files = (
-	(docx, django.Lexer, django.render, 'substitute_variable.docx', {'variable': '♟ ♔'}),
-	(odt, django.Lexer, django.render, 'substitute_variable.odt', {'variable': '♟ ♔'}),
-)
-root = Path(__file__).absolute().parent
-
-for handler, Lexer, render, name, context in files:
-	path = root / name
-	# XXX: there are bugs here.
-	# - folders are not copied
-	# - files other then xml are not copied
-	with path.open('rb') as source, handler.create(root/f'{path.stem}_rendered{path.suffix}') as destination:
-		print(source)
-		for file in handler.iter(source):
-			with file:
-				print(file)
-				content_type, text = stringify.stringify(file, Lexer)
-				with handler.open(destination, file.name) as target:
-					if content_type is content_type.template:
-						rendered_template = render(text, context)
-						file.seek(0)
-						tree = executor.enforce(file, rendered_template, None)
-						# XXX: ElementTree supports only injected writer. It does not yield data instead.
-						# It is the best sample of Classic, OOP, Bad design.
-						tree.write(target, encoding=handler.ENCODING)
-
-					else:
-						file.seek(0)
-						while True:
-							chunk = file.read(handler.CHUNK_SIZE)
-							if not chunk:
-								break
-							target.write(chunk)
-			# file.seek(0)
-			# tree = parse(file)
-			# for part in text:
-			# 	for element in part.elements:
-			# 		found = tree.findall(element.path, {f'n{i}': name for i, name in enumerate(element.namespaces)})
-			# 		assert found, element.path
-			# 		assert len(found) == 1
-			print()
-		print('--')
