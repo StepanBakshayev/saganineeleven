@@ -13,16 +13,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-from xml.etree import ElementTree
-from enum import Enum
-from dataclasses import dataclass, field, fields, make_dataclass, replace
-from collections import deque, Counter, namedtuple
-from itertools import chain, islice
-from typing import Tuple, Optional, List
 import re
-from struct import pack, unpack_from, calcsize
-from operator import attrgetter
-
+from collections import deque, Counter, namedtuple
+from dataclasses import dataclass, replace
+from enum import Enum
+from itertools import chain
+from typing import Tuple, List
+from xml.etree import ElementTree
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -63,8 +60,8 @@ class elementstr(str):
 		return new
 
 	def __getitem__(self, key):
-		assert isinstance(key, slice)
-		assert key.step in (None, 1)
+		assert isinstance(key, slice), type(key)
+		assert key.step in (None, 1), key.step
 		new = self.__class__(super().__getitem__(key))
 		new.elements = ()
 
@@ -99,7 +96,7 @@ class elementstr(str):
 ContentType = Enum('ContentType', 'plaintext template', module=__name__)
 
 
-def stringify(
+def straighten(
 	file,
 	Lexer
 ) -> Tuple[ContentType, List[elementstr]]:
@@ -158,6 +155,7 @@ def stringify(
 
 			lexer.feed(chunk)
 			for token, element in lexer.read_events():
+				# terminal can be splitted by many elements, get first and ignore others.
 				if token is Token.terminal:
 					content_type = ContentType.template
 					solid = elementstr(element)
@@ -171,6 +169,7 @@ def stringify(
 
 	lexer.close()
 	for token, element in lexer.read_events():
+		# terminal can be splitted by many elements, get first and ignore others.
 		if token is Token.terminal:
 			content_type = ContentType.template
 			solid = elementstr(element)
@@ -180,5 +179,3 @@ def stringify(
 		text.append(element)
 
 	return content_type, text
-
-

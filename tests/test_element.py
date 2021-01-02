@@ -39,6 +39,12 @@ def test_elementstr_single():
 	assert end == str(estr)[7:]
 	assert end.elements == (replace(element, offset=7, length=3),)
 
+	# based on regression in lexer (?).
+	estr = elementstr("{% if c != 'c' %}character {{ c }}{% endif %}")
+	estr.elements = Element((((0, 'root'), 0), ((0, 'p'), 1)), ('',), 0, 0),
+	assert estr[0:17] == "{% if c != 'c' %}"
+	assert estr[17:27] == "character "
+
 
 def test_elementstr_many():
 	element = Element((0, 'r'), ('',), 0, 10)

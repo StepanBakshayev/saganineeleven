@@ -53,7 +53,7 @@ class Lexer:
 				self.events.append((Token.text, text))
 			# self.buffer is special type. Ignore match and use it method for slicing.
 			self.events.append((Token.terminal, self.buffer[start:end]))
-			last_position = end + 1
+			last_position = end
 
 		# perform cutting if there is a any match
 		if last_position:

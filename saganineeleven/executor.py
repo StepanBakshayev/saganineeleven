@@ -13,11 +13,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+from enum import Enum
 from xml.etree.ElementTree import ElementTree, parse
-from .straighten import element_re, Element
+from .straighten import Element
 from itertools import islice
 from collections import namedtuple, deque
-import re
 from typing import Tuple, Sequence
 
 TagIndex = namedtuple('TagIndex', 'namespace name index')
@@ -38,8 +38,19 @@ def mirror_nodes(source: ElementTree, destination: ElementTree, position: Tuple[
 	#
 	pass
 
+# plane:
+# - text
+# - element
+# element:
+# - direction
+# - action
 
-def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middleware) -> ElementTree:
+Plane = Enum('Plane', 'element text', module=__name__)
+Direction = Enum('Direction', 'backward forward none', module=__name__)
+Action = Enum('Action', 'clone skip none', module=__name__)
+
+
+def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middleware) -> list:
 	"""
 	Enforce contains those operations:
 	- substitute variables
@@ -66,17 +77,15 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 	# XXX: We don't need parse origin neither. We copy substring from original to result.
 
 	# XXX: return to Element and rewrite it for structuted path.
-	path_re = re.compile(r'^n(?P<namespace>\d+):(?P<name>[^\[]+)\[(?P<index>\d+)\]$')
-	def parse_path(string, namespaces):
-		root, *parts = string.split('/')
-		for part in parts:
-			kwargs = path_re.match(part).groupdict()
+	def restore_path(element: Element):
+		for (namespace_id, tag), index in element.path:
 			yield TagIndex(
-				namespace=namespaces[int(kwargs['namespace'])],
-				name=kwargs['name'],
-				index=int(kwargs['index'])-1,
+				namespace=element.namespaces[namespace_id],
+				name=tag,
+				index=index,
 			)
 
+	log = []
 	previous_path = ()
 	# у нас есть орининал
 	# у нас есть текущая позиция и изменения от неё.
@@ -84,10 +93,23 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 	# информации как соотностися позиция текущая (в потенциально измененом Element.text) и ориганильном.
 	# достаточно завести offset, что бы обозначить на чем оборвалась раскройка оригинального Element.text.
 	# offset указывает на оригинальный Element.text.
-	# origin_offset = 0
-	location_changed = False
-	for element, text in parse_string(tape):
-		path = tuple(parse_path(element.path, element.namespaces))
+	previous_offset = 0
+	for element, text in tape:
+		path = tuple(restore_path(element))
+		if path == previous_path and element.offset != previous_offset:
+			plane = Plane.text
+			direction = Direction.none
+			action = Action.none
+		else:
+			plane = Plane.element
+			if path > previous_path:
+				direction = Direction.forward
+			else:
+				direction = Direction.backward
+			action = Action.clone
+			if element.length and not text:
+				action = Action.skip
+
 		# markers:
 		# [operation on elements]
 		# - cycle: path is behind or equal, less then or equal
@@ -100,7 +122,14 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 		# if location_changed:
 		# 	origin_offset = 0
 
+		tag_repr = lambda t: f'{t.name}[{t.index}]'
+		log.append([
+			['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
+			[plane.name, direction.name, action.name],
+			text,
+		])
 		previous_path = path
+		previous_offset = element.offset
 
 	# че-то нужно сделать
 	# если да, тогда произвести подстановку текста.
@@ -117,4 +146,4 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 	# Инфрастуктура включает в себя
 	# - копирование элементов на основе ленты
 	# - отладка копироания через инъекцию специфики (docx)
-	return result_tree
+	return log
