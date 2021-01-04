@@ -93,6 +93,9 @@ class elementstr(str):
 		return f"<elementstr: '{self!s}', {getattr(self, 'elements', ())}>"
 
 
+namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<tagname>.*?)$')
+
+
 ContentType = Enum('ContentType', 'plaintext template', module=__name__)
 
 
@@ -130,7 +133,6 @@ def straighten(
 			namespaces = []
 			path = deque()
 			element_tag = element.tag
-			namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<tagname>.*?)$')
 			for r in reversed(route):
 				order = r.counter[element_tag]
 				namespace, tagname = '', element_tag
