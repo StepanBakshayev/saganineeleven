@@ -11,7 +11,7 @@ fixture_path = Path(__file__).absolute().parent
 def test():
 	from ruamel.yaml import YAML
 	yaml = YAML()
-	for path in (fixture_path/'case_02.docx.xml'),:
+	for path in (fixture_path/'case_01.docx.xml'),:
 		print(path.name)
 		with path.open('br') as stream:
 			content, text = straighten(stream, Lexer)
@@ -22,6 +22,6 @@ def test():
 			tree, log = enforce(stream, parse(result), None)
 			yaml.dump(log, sys.stdout)
 			print('')
-			# with open('/home/stepan/develop/saganineeleven/objects (копия)/word/document.xml', 'bw') as stream:
-			# 	tree.write(stream, encoding='utf-8', xml_declaration=True)
+			with open(Path(__file__).absolute().parent.parent / f'{path.stem}.rendered.xml', 'bw') as stream:
+				tree.write(stream, encoding='utf-8', xml_declaration=True)
 	assert False

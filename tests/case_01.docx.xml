@@ -36,7 +36,7 @@
             </w:pPr>
             <w:r>
                 <w:rPr></w:rPr>
-                <w:t>{% if c != &apos;c&apos; %}character {{ c }}{% endif %}</w:t>
+                <w:t>{% if c != &apos;C&apos; %}character {{ c }}{% endif %}</w:t>
             </w:r>
         </w:p>
         <w:p>

@@ -26,22 +26,6 @@ from typing import Tuple, Sequence, Deque, Iterator
 TagIndex = namedtuple('TagIndex', 'namespace name index')
 
 
-# This is stupid copy. It does not do anything more. Function handling cycles search another place.
-def mirror_nodes(source: ElementTree, destination: ElementTree, position: Tuple[TagIndex], target: Tuple[TagIndex]):
-	# ветка содержит:
-	# - оригинальный элемент, используется для выпотрощения детей
-	# - клон, используется для операции append
-	# опеределить сколько позиций нужно выкинуть с хвоста из ветки по разнице position-destination
-	# начать с хвоста ветки отбрасывать элементы скидывая детей в клоны по порядку, пока не достигнется количество позиций.
-	# начать заполнять ветку вглубь добавляя элементы в хвост и скидывая детей в дерево через клонов.
-	# ВНИМАНИЕ! нужно уметь копировать целыми поддеревьями, потому что может быть p[2]/r[4], а следом p[5]/r[2]. Нужно скопировать поддерево p[3], p[4] и внутри p[5] ещё родственников до r[2].
-	# position and target have:
-	# - shared head
-	# - different tail
-	#
-	pass
-
-
 # XXX: copy-paste from Element.copy partially.
 def element_copy(element: Element) -> Element:
 	new = element.makeelement(element.tag, element.attrib)
@@ -288,19 +272,4 @@ def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middl
 	debug(log[-1])
 	copy(source, destination, previous_path, initial_path)
 
-	# че-то нужно сделать
-	# если да, тогда произвести подстановку текста.
-	# подстановка текста состоит из ???
-
-	# для вставки достаточно сканировать поседовательно исходник
-	# для условного вывода достаточно сканировать последовательно исходик
-	# для циклов нет
-	# А в чем проблема? нужно трекать состояние куда вставлять очередную ветку элементов и сопоставлять их с текущим
-	#
-	# Вывод: для циклов необходимо отталкиваться от ленты. Для остальных операций - от исходника.
-	# Изначальная идея - это создать НЕОБХОДИМУЮ ИНФРАСТРУКТУРУ и для неё выполнить простейшую операцию: замена.
-	#
-	# Инфрастуктура включает в себя
-	# - копирование элементов на основе ленты
-	# - отладка копироания через инъекцию специфики (docx)
 	return result, log
