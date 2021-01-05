@@ -67,16 +67,63 @@ def find(source: Element, tag_index: TagIndex) -> Tuple[int, Element]:
 	raise ValueError(f'{tag_index!r} was not found in {source.tag}', tag_index, source)
 
 
+def lift_up(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...]):
+	for tag_index in reversed(position):
+		source.pop()
+		destination.pop()
+
+		origin = source[-1]
+		position_index, _ = find(origin, tag_index)
+		clone = destination[-1]
+		for successor in origin[position_index+1:]:
+			clone.append(element_deepcopy(successor))
+
+
+def move_forward(source: Deque[Element], destination: Deque[Element], position: TagIndex, target: TagIndex):
+	source.pop()
+	destination.pop()
+
+	origin = source[-1]
+	position_index, _ = find(origin, position)
+	target_index, _ = find(origin, target)
+	clone = destination[-1]
+	for successor in origin[position_index+1:target_index]:
+		new = element_deepcopy(successor)
+		clone[-1].append(new)
+
+
+def start_target(source: Deque[Element], destination: Deque[Element], target: TagIndex):
+	origin = source[-1]
+	target_index, target_node = find(origin, target)
+	new = element_copy(target_node)
+	clone = destination[-1]
+	clone.append(new)
+
+	source.append(target_node)
+	destination.append(new)
+
+
+def go_down(source: Deque[Element], destination: Deque[Element], target: Tuple[TagIndex, ...]):
+	for tag_index in target:
+		origin = source[-1]
+		target_index, target_node = find(origin, tag_index)
+		clone = destination[-1]
+		for predecessor in origin[0:target_index]:
+			clone.append(element_deepcopy(predecessor))
+		new = element_copy(target_node)
+		clone.append(new)
+
+		source.append(target_node)
+		destination.append(new)
+
+
 def copy(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...], target: Tuple[TagIndex, ...]):
-	# require root to present
+	assert source
 	assert destination
 	assert position
 	assert target
-	# require root to equal
+	assert len(source) == len(destination) == len(position), (source, destination, position)
 	assert position[0] == target[0]
-	# require sync between branch position
-	assert len(destination) == len(position), (destination, position)
-	# require different position and target
 	assert position != target
 
 	root_index = 0
@@ -85,54 +132,24 @@ def copy(source: Deque[Element], destination: Deque[Element], position: Tuple[Ta
 			root_index -= 1
 			break
 
-	root_node = source[root_index]
 	branch_index = root_index + 1
-	position_index = 0
 
-	# stairs to the top: copy successors siblings on each level and lift up
-	# from TagIndex.index to last child on each level.
-	if (branch_index + 1) < len(position):
-		for index in range(len(position)-1, branch_index, -1):
-			source.pop()
-			destination.pop()
-			parent = source[-1]
-			position_index, _ = find(parent, position[index])
-			for successor in parent[position_index+1:]:
-				parent.append(element_deepcopy(successor))
-		assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
+	# XXX: I didn't cope with general algorithm. I split handling by simple steps and make script.
+	if root_index == 0 and len(target) == 1:
+		lift_up(source, destination, position[1:])
 
-	# floor: cross border between root_index+1 of position and target
-	if branch_index < len(position):
-		position_index, _ = find(root_node, position[branch_index])
-		position_index += 1
-		source.pop()
-		destination.pop()
-	assert len(source) == len(destination) == (root_index + 1), (source, destination, root_index)
-	if branch_index < len(target):
-		target_index, target_node = find(root_node, target[branch_index])
-		target_parent = destination[-1]
-		for successor in root_node[position_index:target_index]:
-			new = element_deepcopy(successor)
-			target_parent[-1].append(new)
-		new = element_copy(target_node)
-		target_parent.append(new)
-		source.append(target_node)
-		destination.append(new)
-		assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
+	else:
+		lift_up(source, destination, position[branch_index+1:])
 
-	# stairs to the bottom: copy predecessors siblings on each level and go down
-	# from 0 to TagIndex.index on each level
-	if (branch_index + 1) < len(target):
-		for index in range(branch_index+1, len(target), 1):
-			parent = source[-1]
-			target_parent = destination[-1]
-			target_index, target_node = find(parent, target[index])
-			for predecessor in parent[0:target_index]:
-				target_parent.append(element_deepcopy(predecessor))
-			new = element_copy(target_node)
-			target_parent.append(new)
-			source.append(target_node)
-			destination.append(new)
+		if branch_index < len(target):
+			if branch_index < len(position):
+				move_forward(source, destination, position[branch_index], target[branch_index])
+				assert len(source) == len(destination) == (root_index + 1), (source, destination, root_index)
+
+			start_target(source, destination, target[branch_index])
+			assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
+
+			go_down(source, destination, target[branch_index+1:])
 
 	assert len(source) == len(destination) == len(target), (source, destination, target)
 
@@ -200,7 +217,8 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 		namespace, tagname = match.group('namespace', 'tagname')
 	destination = deque((result_root,))
 	source = deque((origin_root,))
-	previous_path = TagIndex(namespace, tagname, 0),
+	initial_path = TagIndex(namespace, tagname, 0),
+	previous_path = initial_path
 	previous_offset = 0
 	for element, text in tape:
 		path = tuple(restore_path(element))
@@ -240,6 +258,8 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 		])
 		previous_path = path
 		previous_offset = element.offset
+
+	copy(source, destination, previous_path, initial_path)
 
 	# че-то нужно сделать
 	# если да, тогда произвести подстановку текста.

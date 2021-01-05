@@ -1,17 +1,16 @@
-import sys
 from collections import deque
 from io import StringIO
 
 from saganineeleven.executor import copy, element_copy, TagIndex
 
-from xml.etree.ElementTree import fromstring, ElementTree, tostring
+from xml.etree.ElementTree import fromstring, ElementTree
 
 from saganineeleven.straighten import namespace_re
 
 
 def test_copy():
-	xml = """<?xml version='1.0' encoding='UTF-8'?>
-	<document>
+	xml = """<?xml version='1.0' encoding='UTF-8'?>\n"""\
+"""<document>
 		<p>paragraph</p>
 		<table>
 			<tr>
@@ -27,19 +26,18 @@ def test_copy():
 		<figure>
 			<t>title</t>
 			<path>
-				<point>1</point>
-				<point>2</point>
-				<point>3</point>
-				<point>4</point>
+				<point><x>1</x><y>11</y></point>
+				<point><x>2</x><y>22</y></point>
+				<point><x>3</x><y>33</y></point>
+				<point><x>4</x><y>44</y></point>
 			</path>
 		</figure>
 		<section>
-			<param1 value="a"/>
-			<param2 value="b"/>
-			<param3 value="c"/>
+			<param1 value="a" />
+			<param2 value="b" />
+			<param3 value="c" />
 		</section>
-	</document>
-	"""
+	</document>"""
 	origin_tree = ElementTree(fromstring(xml))
 	origin_root = origin_tree.getroot()
 	source = deque((origin_root,))
@@ -64,15 +62,11 @@ def test_copy():
 		(ri, TagIndex('', 'table', 0), TagIndex('', 'tr', 1), TagIndex('', 'td', 1)),
 		(ri, TagIndex('', 'p', 1)),
 		(ri, TagIndex('', 'figure', 0), TagIndex('', 't', 0)),
+		(ri, TagIndex('', 'figure', 0), TagIndex('', 'path', 0), TagIndex('', 'point', 1), TagIndex('', 'y', 0)),
 		(ri,),
 	)
 	for path in paths:
-		print(path)
 		copy(source, destination, previous_path, path)
-		result.write(sys.stdout, encoding='unicode', xml_declaration=True)
-		print('')
-		print(source, source[-1].text)
-		print(destination, destination[-1].text)
 		previous_path = path
 
 	buffer = StringIO()
