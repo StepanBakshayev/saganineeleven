@@ -15,10 +15,13 @@
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from enum import Enum
 from xml.etree.ElementTree import ElementTree, parse, Element
+
+from devtools import debug
+
 from .straighten import namespace_re
 from itertools import islice
 from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque
+from typing import Tuple, Sequence, Deque, Iterator
 
 TagIndex = namedtuple('TagIndex', 'namespace name index')
 
@@ -58,13 +61,13 @@ def find(source: Element, tag_index: TagIndex) -> Tuple[int, Element]:
 	count = 0
 	tag = tag_index.name
 	if tag_index.namespace:
-		tag = f'{tag_index.namespace}{tag}'
+		tag = f'{{{tag_index.namespace}}}{tag}'
 	for index, child in enumerate(source):
 		if child.tag == tag:
 			if count == tag_index.index:
 				return index, child
 			count += 1
-	raise ValueError(f'{tag_index!r} was not found in {source.tag}', tag_index, source)
+	raise ValueError(f'{tag_index!r} was not found in {source.tag}. Looked up for {tag!r}.', tag_index, tag, source)
 
 
 def lift_up(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...]):
@@ -171,7 +174,7 @@ Direction = Enum('Direction', 'backward forward none', module=__name__)
 Action = Enum('Action', 'copy skip none', module=__name__)
 
 
-def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
+def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
 	"""
 	Enforce contains those operations:
 	- substitute variables
@@ -236,29 +239,45 @@ def enforce(origin: 'FileLikeObject', tape: Sequence[Tuple[Element, str]], middl
 			if element.length and not text:
 				action = Action.skip
 
-		if plane is Plane.element:
-			if action is Action.copy:
-				copy(source, destination, previous_path, path)
-			elif action is Action.skip:
-				# explicit handling.
-				# XXX: call middleware for handling skipping. copy will be handling too in near future.
-				pass
-			else:
-				raise RuntimeError('Unsupported action', action)
-		elif plane is Plane.text:
-			append(destination[-1], text)
-		else:
-			raise RuntimeError('Unsupported plane', plane)
-
 		tag_repr = lambda t: f'{t.name}[{t.index}]'
 		log.append([
 			['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
 			[plane.name, direction.name, action.name],
 			text,
 		])
-		previous_path = path
-		previous_offset = element.offset
+		debug(log[-1])
 
+		if plane is Plane.element:
+			if action is Action.copy:
+				copy(source, destination, previous_path, path)
+				previous_path = path
+				previous_offset = element.offset
+			elif action is Action.skip:
+				# explicit handling.
+				# XXX: call middleware for handling skipping. copy will be handling too in near future.
+				root_index = 0
+				for root_index, (a, b) in enumerate(zip(previous_path, path)):
+					if a != b:
+						root_index -= 1
+						break
+				previous_path = path[:root_index+1]
+				previous_offset = element.offset
+			else:
+				raise RuntimeError('Unsupported action', action)
+		elif plane is Plane.text:
+			append(destination[-1], text)
+			previous_offset = element.offset
+		else:
+			raise RuntimeError('Unsupported plane', plane)
+
+
+	tag_repr = lambda t: f'{t.name}[{t.index}]'
+	log.append([
+		['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
+		[plane.name, direction.name, action.name],
+		text,
+	])
+	debug(log[-1])
 	copy(source, destination, previous_path, initial_path)
 
 	# че-то нужно сделать

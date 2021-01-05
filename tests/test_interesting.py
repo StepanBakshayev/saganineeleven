@@ -11,14 +11,16 @@ fixture_path = Path(__file__).absolute().parent
 def test():
 	from ruamel.yaml import YAML
 	yaml = YAML()
-	for path in (fixture_path/'case_01.docx.xml'),:
+	for path in (fixture_path/'case_02.docx.xml'),:
 		print(path.name)
 		with path.open('br') as stream:
 			content, text = straighten(stream, Lexer)
 			assert content is content.template
 			template = stringify(text)
-			result = render(template, {})
+			result = render(template, {'show': True})
 			stream.seek(0)
-			log = enforce(stream, parse(result), None)
+			tree, log = enforce(stream, parse(result), None)
 			yaml.dump(log, sys.stdout)
+			print('')
+			tree.getroot().write(sys.stdout, encoding='unicode', xml_declaration=True)
 	assert False
