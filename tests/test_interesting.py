@@ -22,5 +22,6 @@ def test():
 			tree, log = enforce(stream, parse(result), None)
 			yaml.dump(log, sys.stdout)
 			print('')
-			tree.getroot().write(sys.stdout, encoding='unicode', xml_declaration=True)
+			# with open('/home/stepan/develop/saganineeleven/objects (копия)/word/document.xml', 'bw') as stream:
+			# 	tree.write(stream, encoding='utf-8', xml_declaration=True)
 	assert False

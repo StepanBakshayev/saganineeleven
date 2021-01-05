@@ -162,6 +162,11 @@ def append(place: Element, text):
 	place.text += text
 
 
+# XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
+def set(place: Element, text):
+	place.text = text
+
+
 # plane:
 # - text
 # - element
@@ -250,6 +255,7 @@ def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middl
 		if plane is Plane.element:
 			if action is Action.copy:
 				copy(source, destination, previous_path, path)
+				set(destination[-1], text)
 				previous_path = path
 				previous_offset = element.offset
 			elif action is Action.skip:
@@ -260,7 +266,9 @@ def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middl
 					if a != b:
 						root_index -= 1
 						break
-				previous_path = path[:root_index+1]
+				source = deque(islice(source, root_index+1))
+				destination = deque(islice(destination, root_index+1))
+				previous_path = previous_path[:root_index+1]
 				previous_offset = element.offset
 			else:
 				raise RuntimeError('Unsupported action', action)
