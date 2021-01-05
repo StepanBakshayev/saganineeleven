@@ -76,6 +76,7 @@ def move_forward(source: Deque[Element], destination: Deque[Element], position: 
 	clone = destination[-1]
 	for successor in origin[position_index+1:target_index]:
 		new = element_deepcopy(successor)
+		# XXX: bug here. No one test catches it.
 		clone[-1].append(new)
 
 
