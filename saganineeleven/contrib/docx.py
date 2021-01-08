@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+from xml.etree.ElementTree import Element
 from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
 
 
@@ -31,3 +32,33 @@ def create(path):
 
 def open(archive, path):
 	return archive.open(path, 'w')
+
+
+W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+V = 'urn:schemas-microsoft-com:vml'
+M = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
+
+
+text_nodes = {
+	f'{{{W}}}r',
+	f'{{{V}}}textpath',
+	f'{{{M}}}r',
+}
+
+
+def convert(element: Element) -> str:
+	if element.tag == f'{{{V}}}textpath':
+		return element.get('string')
+	elif element.tag not in {f'{{{W}}}r', f'{{{M}}}r'}:
+		raise RuntimeError(f'Unsupported element {element.tag}.', element)
+	chunks = []
+	for child in element:
+		if child.tag.endswith('}t'):
+			chunks.append(child.text)
+		# Each other case is cosmetic.
+		elif child.tag.endswith(f'{{{W}}}tab'):
+			chunks.append('\t')
+		elif child.tag.endswith(f'{{{W}}}br'):
+			chunks.append('\n')
+
+	return ''.join(chunks)

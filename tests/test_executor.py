@@ -5,8 +5,6 @@ from saganineeleven.executor import copy, element_copy, TagIndex, find
 
 from xml.etree.ElementTree import fromstring, ElementTree
 
-from saganineeleven.straighten import namespace_re
-
 
 def test_copy():
 	xml = """<?xml version='1.0' encoding='UTF-8'?>\n"""\

@@ -3,19 +3,19 @@ from dataclasses import replace
 from django.conf import settings
 
 from saganineeleven.contrib.django import Lexer
-from saganineeleven.straighten import Element, elementstr, Token
+from saganineeleven.straighten import elementstr, Token, ElementPointer
 
 
 def test_lexer():
 	settings.configure()
 	chunks = (
-		("{% for c in 'ABCD' %}", Element((((0, 'root'), 0), ((0, 'p'), 0)), ('',), 0, 0)),
-		("{% if c != 'c' %}character {{ c }}{% endif %}", Element((((0, 'root'), 0), ((0, 'p'), 1)), ('',), 0, 0)),
-		('{% endfor %}', Element((((0, 'root'), 0), ((0, 'p'), 2)), ('',), 0, 0)),
+		("{% for c in 'ABCD' %}", ElementPointer((0,), representation_length=21, offset=0, length=21, is_constant=True)),
+		("{% if c != 'C' %}character {{ c }}{% endif %}", ElementPointer((1,), representation_length=45, offset=0, length=45, is_constant=True)),
+		('{% endfor %}', ElementPointer((2,), representation_length=12, offset=0, length=12, is_constant=True)),
 	)
 	lexems = (
 		(Token.terminal, "{% for c in 'ABCD' %}"),
-		(Token.terminal, "{% if c != 'c' %}"),
+		(Token.terminal, "{% if c != 'C' %}"),
 		(Token.text, 'character '),
 		(Token.terminal, '{{ c }}'),
 		(Token.terminal, '{% endif %}'),

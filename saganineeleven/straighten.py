@@ -18,8 +18,10 @@ from collections import deque, Counter, namedtuple
 from dataclasses import dataclass, replace
 from enum import Enum
 from itertools import chain
-from typing import Tuple, List
-from xml.etree import ElementTree
+from typing import Tuple, List, Set, Callable
+from xml.etree.ElementTree import iterparse, ElementTree, Element
+
+from devtools import debug
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -40,15 +42,16 @@ Token = Enum('Event', 'text terminal', module=__name__)
 # 	def read_events(self):
 # 		return (Token.text, self.chunk),
 
-TagType = Tuple[int, str]
 
+Index = int
 
 @dataclass(frozen=True)
-class Element:
-	path: Tuple[Tuple[TagType, int], ...]
-	namespaces: Tuple[str, ...]
+class ElementPointer:
+	path: Tuple[Index, ...]
+	representation_length: int
 	offset: int
 	length: int
+	is_constant: bool
 
 
 class elementstr(str):
@@ -66,15 +69,16 @@ class elementstr(str):
 		new.elements = ()
 
 		start, stop, _ = key.indices(len(self))
-		# mircooptimization + flow requirement
+		# It are mircooptimization and algorithm requirement.
 		if start < len(self):
+			assert self.elements
 			cursor = 0
 			elements = iter(self.elements)
 			for element in elements:
 				if cursor <= start < element.length + cursor:
 					break
 				cursor += element.length
-			# there are valid element anyway guaranteed by upper condition guard
+			# There are valid element anyway guaranteed by upper condition guard (aka "algorithm requirement").
 			element_offset = start - cursor
 			start_element = replace(element, offset=(element.offset+element_offset), length=(element.length-element_offset))
 			cursor += element_offset
@@ -85,6 +89,14 @@ class elementstr(str):
 				cursor += element.length
 				if cursor == stop:
 					break
+
+			for index in 0, -1:
+				element = new_elements[index]
+				is_constant = element.representation_length == element.length
+				if is_constant:
+					assert element.offset == 0
+				new_elements[index] = replace(element, is_constant=is_constant)
+
 			new.elements = tuple(new_elements)
 
 		return new
@@ -93,78 +105,76 @@ class elementstr(str):
 		return f"<elementstr: '{self!s}', {getattr(self, 'elements', ())}>"
 
 
-namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<tagname>.*?)$')
-
-
 ContentType = Enum('ContentType', 'plaintext template', module=__name__)
+
+
+MINIMAL_TEXT_LENGTH = len('I love you.')
+ETC = '❰⋯❱'
+
+
+def compress(element: elementstr) -> elementstr:
+	if len(element.elements) > 2 and len(element) > MINIMAL_TEXT_LENGTH:
+		chunks = []
+		elements = []
+		offset = 0
+		for part in element.elements[0], element.elements[1]:
+			chunks.append(str.__getitem__(element, slice(offset, part.length+offset)))
+			elements.append(part)
+			offset += part.length
+			if part.is_constant:
+				break
+		if (len(element.elements) - len(elements)) > len(elements):
+			chunks.append(ETC)
+			elements[-1] = replace(elements[-1], length=elements[-1].length+len(ETC))
+			last_chunk = len(chunks)
+			last_element = len(elements)
+			offset = 0
+			for part in element.elements[-1], element.elements[-2]:
+				chunks.insert(last_chunk, str.__getitem__(element, slice(-part.length-offset, -offset or None)))
+				elements.insert(last_element, part)
+				offset += part.length
+				if part.is_constant:
+					break
+
+			element = elementstr(''.join(chunks))
+			element.elements = tuple(elements)
+
+	return element
 
 
 def straighten(
 	file,
-	Lexer
+	Lexer,
+	text_nodes: Set[str],
+	converter: Callable[[Element], str]
 ) -> Tuple[ContentType, List[elementstr]]:
 	text = []
 	lexer = Lexer()
-	Node = namedtuple('Node', 'tag counter')
-	route = deque((Node(None, Counter()),))
 	content_type = ContentType.plaintext
 	# XXX: ElementTree construct whole tree in memory anyway. This consumes memory for nothing.
-	for (event, element) in ElementTree.iterparse(file, events=('start', 'end',)):
+	parser = iterparse(file, events=('start', 'end',))
+	event, element = next(parser)
+	assert event == 'start'
+	branch = [element]
+	for (event, element) in parser:
 		if event == 'start':
-			tag = element.tag
-			route[-1].counter[tag] += 1
-			route.append(Node(tag, Counter()))
+			branch.append(element)
 
 		elif event == 'end':
-			route.pop()
+			if element.tag in text_nodes:
+				chunk = elementstr(converter(element))
+				chunk.elements = ElementPointer(
+					path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
+					representation_length=len(chunk),
+					offset=0,
+					length=len(chunk),
+					is_constant=True,
+				),
+				lexer.feed(chunk)
 
-			# Test must be in leaf node.
-			# XXX: this is ugly way for checking children.
-			tree = element.iter()
-			# pull root. It is node by self.
-			next(tree)
-			if next(tree, None) is not None:
-				continue
-
-			# shortcut
-			if element.text is None:
-				continue
-
-			namespaces = []
-			path = deque()
-			element_tag = element.tag
-			for r in reversed(route):
-				order = r.counter[element_tag]
-				namespace, tagname = '', element_tag
-				match = namespace_re.match(element_tag)
-				if match:
-					namespace, tagname = match.group('namespace', 'tagname')
-				try:
-					index = namespaces.index(namespace)
-				except ValueError:
-					namespaces.append(namespace)
-					index = len(namespaces) - 1
-				path.appendleft(((index, tagname), order-1))
-
-				element_tag = r.tag
-				if element_tag is None:
-					break
-
-			chunk = elementstr(element.text)
-			# xml.etree.ElementTree.ElementTree.find does not support match for root element of tree. Cut head.
-			# XXX: there are root element in namespaces. It is nonsense.
-			chunk.elements = Element(tuple(path), tuple(namespaces), 0, len(chunk)),
-
-			lexer.feed(chunk)
-			for token, element in lexer.read_events():
-				# terminal can be splitted by many elements, get first and ignore others.
-				if token is Token.terminal:
-					content_type = ContentType.template
-					solid = elementstr(element)
-					# XXX: this is wrong. It is Poor's man solution.
-					solid.elements = replace(element.elements[0], length=len(element)),
-					element = solid
-				text.append(element)
+			branch.pop()
+			# XXX: It is stub for ElementTree, unlink children to free memory.
+			element[:] = []
 
 		else:
 			raise RuntimeError(f'Unsupported event type {event} from ElementTree.iterparse().')
@@ -178,6 +188,9 @@ def straighten(
 			# XXX: this is wrong. It is Poor's man solution.
 			solid.elements = replace(element.elements[0], length=len(element)),
 			element = solid
+		elif token is Token.text:
+			element = compress(element)
+
 		text.append(element)
 
 	return content_type, text

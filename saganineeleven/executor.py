@@ -18,7 +18,6 @@ from xml.etree.ElementTree import ElementTree, parse, Element
 
 from devtools import debug
 
-from .straighten import namespace_re
 from itertools import islice
 from collections import namedtuple, deque
 from typing import Tuple, Sequence, Deque, Iterator

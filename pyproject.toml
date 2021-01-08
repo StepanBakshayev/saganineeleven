@@ -17,6 +17,13 @@ msgpack = "^1.0.2"
 ipython = "^7.17.0"
 django = "^3.1"
 pytest = "^6.2.1"
+# Hold jedi to prevent exception.
+#  File ".venv/site-packages/IPython/core/completer.py", line 1374, in _jedi_matches
+#    text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
+#  File ".venv/site-packages/jedi/api/__init__.py", line 726, in __init__
+#    project=Project(Path.cwd()), **kwds)
+#TypeError: __init__() got 2 unexpected keyword arguments
+jedi = "~=0.17.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

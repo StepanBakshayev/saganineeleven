@@ -5,7 +5,7 @@ import re
 
 from msgpack import packb, unpackb
 
-from .straighten import elementstr, Element
+from .straighten import elementstr, ElementPointer
 from dataclasses import astuple
 
 # surrogates U+DC80 to U+DCFF
@@ -24,7 +24,7 @@ def stringify(text: Sequence[elementstr]) -> str:
 	return ''.join(buffer)
 
 
-def parse(tape: str) -> Iterator[Tuple[Element, str]]:
+def parse(tape: str) -> Iterator[Tuple[ElementPointer, str]]:
 	in_element = True
 	element_dump = None
 	# XXX: There are big memory consumption and big cpu utilization. I don't find any good regexp iterable match.
@@ -32,6 +32,6 @@ def parse(tape: str) -> Iterator[Tuple[Element, str]]:
 		if in_element:
 			element_dump = bit
 		else:
-			yield Element(*unpackb(element_dump.encode('utf-8', 'surrogateescape'), use_list=False)), bit
+			yield ElementPointer(*unpackb(element_dump.encode('utf-8', 'surrogateescape'), use_list=False)), bit
 			element_dump = None
 		in_element = not in_element

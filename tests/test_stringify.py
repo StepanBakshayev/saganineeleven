@@ -1,15 +1,17 @@
 from saganineeleven.stringify import stringify, parse
-from saganineeleven.straighten import elementstr, Element
+from saganineeleven.straighten import elementstr, ElementPointer, ETC
+
 
 def test():
 	str_element = [
-		('Hello,', Element(path=(((0, 'root'), 0), ((0, 'p'), 0)), namespaces=('', 'xns'), offset=0, length=6)),
-		('{{ name }}', Element(path=(((0, 'root'), 0), ((0, 'p'), 1)), namespaces=('', 'xns'), offset=0, length=10)),
-		("I proud to greet some curios users.", Element(path=(((0, 'root'), 0), ((0, 'p'), 2)), namespaces=('',), offset=0, length=35)),
-		("There are some possible optimization for a future.", Element(path=(((0, 'root'), 0), ((0, 'p'), 3)), namespaces=('',), offset=0, length=50)),
-		("I want to sure I don't do it earlier.", Element(path=(((0, 'root'), 0), ((0, 'p'), 4)), namespaces=('',), offset=0, length=37)),
-		("Buy, ", Element(path=(((0, 'root'), 0), ((0, 'p'), 5)), namespaces=('',), offset=0, length=5)),
-		('{{ name }}', Element(path=(((0, 'root'), 0), ((0, 'p'), 5)), namespaces=('', 'xns'), offset=5, length=10)),
+		('Hello,', ElementPointer(path=(0, 0, 1,), representation_length=6, offset=0, length=6, is_constant=True)),
+		('{{ name }}', ElementPointer(path=(0, 1, 1,), representation_length=11, offset=0, length=10, is_constant=False)),
+		(f"!", ElementPointer(path=(0, 1, 1,), representation_length=11, offset=10, length=1, is_constant=False)),
+		(f"I proud to greet some curios users.{ETC}", ElementPointer(path=(0, 2, 1,), representation_length=35, offset=0, length=35+len(ETC), is_constant=True)),
+		(f"I want to sure I don't do it earlier.", ElementPointer(path=(0, 4, 1,), representation_length=37, offset=0, length=37, is_constant=True)),
+		(f"Buy, ", ElementPointer(path=(0, 5, 1,), representation_length=16, offset=0, length=5, is_constant=False)),
+		('{{ name }}', ElementPointer(path=(0, 5, 1,), representation_length=16, offset=5, length=10, is_constant=False)),
+		('.', ElementPointer(path=(0, 5, 1,), representation_length=16, offset=15, length=1, is_constant=False)),
 	]
 	text = []
 	for string, element in str_element:
