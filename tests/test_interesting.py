@@ -4,35 +4,12 @@ from typing import List
 
 from saganineeleven.contrib import docx, odt
 from saganineeleven.contrib.django import Lexer, render
-from saganineeleven.executor import enforce, play
+from saganineeleven.executor import enforce, play, make_x
 from saganineeleven.straighten import straighten, Path as ElementPath
 from saganineeleven.stringify import stringify, parse
 from xml.etree.ElementTree import parse as xml_parse, Element
 
 fixture_path = Path(__file__).absolute().parent
-
-
-def make_x(root: Element, path: ElementPath) -> List[str]:
-	if path is None:
-		return 'None'
-	parent = root
-	chunks = ['.']
-	for index in path:
-		try:
-			child = parent[index]
-		except IndexError:
-			chunks.append('?')
-			break
-		tag = child.tag
-		count = 0
-		for c in parent:
-			if c.tag == tag:
-				if c == child:
-					break
-				count += 1
-		chunks.append(f'{tag}[{count}]')
-		parent = child
-	return chunks
 
 
 def test():
@@ -53,8 +30,7 @@ def test():
 				operation, value = next(iter(op.items()))
 				if operation is operation.copy:
 					value = [[value.start, make_x(origin_root, value.start)], [value.stop, make_x(origin_root, value.stop)]]
-				log.append([operation.name, value])
-			yaml.dump(log, sys.stdout)
+				yaml.dump([[operation.name, value]], sys.stdout)
 			print('')
 
 	assert False

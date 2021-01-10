@@ -15,6 +15,7 @@
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 import dataclasses
 from enum import Enum
+from xml.etree import ElementPath
 from xml.etree.ElementTree import ElementTree, parse, Element
 from typing_extensions import Literal
 
@@ -22,7 +23,7 @@ from devtools import debug
 
 from itertools import islice, tee, chain
 from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional
+from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List
 
 from .straighten import ElementPointer, Path
 
@@ -162,6 +163,33 @@ def set(place: Element, text):
 # - direction
 # - action
 
+
+# Utility function for debug purpose.
+def make_x(root: Element, path: ElementPath) -> List[str]:
+	if path is None:
+		return 'None'
+	parent = root
+	tag = parent.tag
+	count = 0
+	chunks = [f'{tag}[{count}]']
+	for index in path:
+		try:
+			child = parent[index]
+		except IndexError:
+			chunks.append(f'{parent}?{index}')
+			break
+		tag = child.tag
+		count = 0
+		for c in parent:
+			if c.tag == tag:
+				if c == child:
+					break
+				count += 1
+		chunks.append(f'{tag}[{count}]')
+		parent = child
+	return chunks
+
+
 Operation = Enum('Operation', 'copy set_text', module=__name__)
 
 @dataclasses.dataclass(frozen=True)
@@ -173,8 +201,9 @@ ElementOperation = Enum('ElementOperation', 'copy set_text none', module=__name_
 
 
 def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
-	if pointer.is_constant and pointer.length == len(text):
+	if pointer.is_constant:
 		assert pointer.offset == 0, (pointer, text)
+		assert pointer.length == len(text)
 		return ElementOperation.copy
 	elif text:
 		assert pointer.offset < pointer.representation_length, (pointer, text)
@@ -183,16 +212,16 @@ def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
 	return ElementOperation.none
 
 
-def play(origin_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
+def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
 	opening = []
-	node = origin_root
+	node = tree_root
 	while len(node):
 		opening.append(0)
 		node = node[0]
 	opening = tuple(opening)
 
 	ending = []
-	node = origin_root
+	node = tree_root
 	while len(node):
 		ending.append(len(node)-1)
 		node = node[-1]
@@ -207,8 +236,7 @@ def play(origin_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> It
 		return a[:root_index+1]
 
 	annotation, plain = tee(tape)
-	path_text = map(lambda p0t1: (p0t1[0].path, p0t1[1]), plain)
-	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), path_text)
+	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
 
 	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError.
 	head_tape = next(annotated_tape, None)
@@ -218,12 +246,17 @@ def play(origin_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> It
 	copy_range_start = None
 	last_text_path = None
 	full_tape = chain(
-		((ElementOperation.copy, (opening, '')), head_tape,),
+		((ElementOperation.copy, (ElementPointer(opening, 0, 0, 0, True), '')), head_tape,),
 		annotated_tape,
-		((ElementOperation.copy, (ending, '')),),
-		((ElementOperation.none, (ending, '')),),
+		# ((ElementOperation.copy, (ending, '')),),
+		# ((ElementOperation.none, ((), '')),),
 	)
-	for operation, (path, text) in full_tape:
+	previous_position = ((), 0, 0)
+	for operation, (pointer, text) in full_tape:
+		path = pointer.path
+		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
+		debug(operation, position, make_x(tree_root, path), text)
+		# print('')
 		if operation is ElementOperation.none:
 			if copy_range_start:
 				root = get_root(copy_range_start, path)
@@ -245,6 +278,9 @@ def play(origin_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> It
 				yield {Operation.copy: Range(path, path)}
 				last_text_path = path
 			yield {Operation.set_text: text}
+
+		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
+		previous_position = position
 
 
 def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
@@ -318,7 +354,7 @@ def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middl
 			[plane.name, direction.name, action.name],
 			text,
 		])
-		debug(log[-1])
+		# debug(log[-1])
 
 		if plane is Plane.element:
 			if action is Action.copy:
@@ -353,7 +389,7 @@ def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middl
 		[plane.name, direction.name, action.name],
 		text,
 	])
-	debug(log[-1])
+	# debug(log[-1])
 	copy(source, destination, previous_path, initial_path)
 
 	return result, log

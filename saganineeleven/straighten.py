@@ -182,12 +182,19 @@ def straighten(
 
 	lexer.close()
 	for token, element in lexer.read_events():
-		# terminal can be splitted by many elements, get first and ignore others.
 		if token is Token.terminal:
+			# There are two interesting cases for further processing.
+			# It is substitution with variable. It is coping with cycle.
+			# Terminal is consuming by template engine. Leaves breadcrumbs before for variable and after for cycle.
+			# Once more terminal can be splitted by many elements, use first and ignore others.
 			content_type = ContentType.template
 			solid = elementstr(element)
 			# XXX: this is wrong. It is Poor's man solution.
-			solid.elements = replace(element.elements[0], length=len(element)),
+			head, tail = element.elements[0], element.elements[-1]
+			solid.elements = (
+				replace(head, length=len(element), is_constant=False),
+				replace(tail, offset=tail.offset+tail.length, length=0, is_constant=False),
+			)
 			element = solid
 		elif token is Token.text:
 			element = compress(element)
