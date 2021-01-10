@@ -255,7 +255,7 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 	for operation, (pointer, text) in full_tape:
 		path = pointer.path
 		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
-		debug(operation, position, make_x(tree_root, path), text)
+		# debug(operation, position, make_x(tree_root, path), text)
 		# print('')
 		if operation is ElementOperation.none:
 			if copy_range_start:
