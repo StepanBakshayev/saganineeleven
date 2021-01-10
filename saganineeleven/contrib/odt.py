@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+from xml.etree.ElementTree import Element
 from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
 
 
@@ -32,3 +33,18 @@ def create(path):
 
 def open(archive, path):
 	return archive.open(path, 'w')
+
+
+TEXT = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
+
+
+text_nodes = {
+	f'{{{TEXT}}}p',
+}
+
+
+def convert(element: Element) -> str:
+	if element.tag not in text_nodes:
+		raise RuntimeError(f'Unsupported element {element.tag}.', element)
+
+	return element.text

@@ -44,13 +44,14 @@ Token = Enum('Event', 'text terminal', module=__name__)
 
 
 Index = int
+Path = Tuple[Index, ...]
 
 @dataclass(frozen=True)
 class ElementPointer:
-	path: Tuple[Index, ...]
+	path: Path
 	representation_length: int
 	offset: int
-	length: int
+	length: int  # XXX: Is empty elements supported (length=0) or forbidden?
 	is_constant: bool
 
 

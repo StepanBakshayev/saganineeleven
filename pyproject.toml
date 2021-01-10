@@ -12,6 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7"
 msgpack = "^1.0.2"
+typing-extensions = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.17.0"

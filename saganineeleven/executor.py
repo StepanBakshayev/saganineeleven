@@ -13,14 +13,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+import dataclasses
 from enum import Enum
 from xml.etree.ElementTree import ElementTree, parse, Element
+from typing_extensions import Literal
 
 from devtools import debug
 
-from itertools import islice
+from itertools import islice, tee, chain
 from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque, Iterator
+from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional
+
+from .straighten import ElementPointer, Path
 
 TagIndex = namedtuple('TagIndex', 'namespace name index')
 
@@ -158,9 +162,89 @@ def set(place: Element, text):
 # - direction
 # - action
 
-Plane = Enum('Plane', 'element text', module=__name__)
-Direction = Enum('Direction', 'backward forward none', module=__name__)
-Action = Enum('Action', 'copy skip none', module=__name__)
+Operation = Enum('Operation', 'copy set_text', module=__name__)
+
+@dataclasses.dataclass(frozen=True)
+class Range:
+	start: Path
+	stop: Path
+
+ElementOperation = Enum('ElementOperation', 'copy set_text none', module=__name__)
+
+
+def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
+	if pointer.is_constant and pointer.length == len(text):
+		assert pointer.offset == 0, (pointer, text)
+		return ElementOperation.copy
+	elif text:
+		assert pointer.offset < pointer.representation_length, (pointer, text)
+		assert pointer.length, (pointer, text)
+		return ElementOperation.set_text
+	return ElementOperation.none
+
+
+def play(origin_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
+	opening = []
+	node = origin_root
+	while len(node):
+		opening.append(0)
+		node = node[0]
+	opening = tuple(opening)
+
+	ending = []
+	node = origin_root
+	while len(node):
+		ending.append(len(node)-1)
+		node = node[-1]
+	ending = tuple(ending)
+
+	def get_root(a, b):
+		root_index = 0
+		for index, (i, j) in enumerate(zip(a, b)):
+			if i != j:
+				root_index -= 1
+				break
+		return a[:root_index+1]
+
+	annotation, plain = tee(tape)
+	path_text = map(lambda p0t1: (p0t1[0].path, p0t1[1]), plain)
+	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), path_text)
+
+	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError.
+	head_tape = next(annotated_tape, None)
+	if head_tape is None:
+		raise ValueError('tape must contain at least one pair of element and text.')
+
+	copy_range_start = None
+	last_text_path = None
+	full_tape = chain(
+		((ElementOperation.copy, (opening, '')), head_tape,),
+		annotated_tape,
+		((ElementOperation.copy, (ending, '')),),
+		((ElementOperation.none, (ending, '')),),
+	)
+	for operation, (path, text) in full_tape:
+		if operation is ElementOperation.none:
+			if copy_range_start:
+				root = get_root(copy_range_start, path)
+				branch_index = len(root)
+				start_successor = copy_range_start[branch_index] + 1
+				end_exclude = path[branch_index]
+				if end_exclude == start_successor:
+					yield {Operation.copy: Range(copy_range_start, root+(start_successor,))}
+				else:
+					yield {Operation.copy: Range(copy_range_start, root+(end_exclude-1,))}
+				copy_range_start = None
+
+		elif operation is ElementOperation.copy:
+			if copy_range_start is None:
+				copy_range_start = path
+
+		elif operation is ElementOperation.set_text:
+			if path != last_text_path:
+				yield {Operation.copy: Range(path, path)}
+				last_text_path = path
+			yield {Operation.set_text: text}
 
 
 def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:

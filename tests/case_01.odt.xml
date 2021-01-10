@@ -139,7 +139,7 @@
             <text:p text:style-name="Standard">{% for c in &apos;ABCD&apos; %}</text:p>
             <text:list xml:id="list2351998935" text:style-name="L1">
                 <text:list-item>
-                    <text:p text:style-name="Standard">{% if c != &apos;c&apos; %}character {{ c }}{% endif %}</text:p>
+                    <text:p text:style-name="Standard">{% if c != &apos;C&apos; %}character {{ c }}{% endif %}</text:p>
                 </text:list-item>
             </text:list>
             <text:p text:style-name="Standard">{% endfor %}</text:p>
