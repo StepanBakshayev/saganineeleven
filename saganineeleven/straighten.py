@@ -46,12 +46,24 @@ Token = Enum('Event', 'text terminal', module=__name__)
 Index = int
 Path = Tuple[Index, ...]
 
+
 @dataclass(frozen=True)
 class ElementPointer:
+	"""ElementPointer contains two kinds of information:
+	- navigation (fields: path)
+	- interpretation (fields: representation_length, offset, length, is_constant)
+
+	Interpretation ways down to two states:
+	- original node from source tree to copy as is (fields: is_constant=True)
+	- node with dynamic content (fields: is_constant=False, offset, length, representation_length)
+
+	The field `is_constant` is depended of offset, length, representation_length.
+
+	It is allowed to have ElementPointer with zero length."""
 	path: Path
 	representation_length: int
 	offset: int
-	length: int  # XXX: Is empty elements supported (length=0) or forbidden?
+	length: int
 	is_constant: bool
 
 

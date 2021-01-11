@@ -256,6 +256,8 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 		for operation, (pointer, text) in annotated_tape:
 			if operation is not ElementOperation.none:
 				break
+		if operation is ElementOperation.none:
+			raise RuntimeError('Tape is full of empty elements.')
 		head_tape = operation, (pointer, text)
 
 		first_present = pointer.path
@@ -274,7 +276,11 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 
 			yield {Operation.copy: Range(opening, stop)}
 
-	annotated_tape = chain((head_tape,), annotated_tape)
+	annotated_tape = chain(
+		(head_tape,),
+		annotated_tape,
+		# ((ElementOperation.copy, (ElementPointer(path=ending, representation_length=0, offset=0, length=0, is_constant=True), '')),),
+	)
 
 	copy_range_start = None
 	last_text_path = None
