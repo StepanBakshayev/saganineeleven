@@ -27,7 +27,7 @@ from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List
 
 from .straighten import ElementPointer, Path
 
-TagIndex = namedtuple('TagIndex', 'namespace name index')
+TagIndex = namedtuple('TagIndex', 'namespace name index', module=__name__)
 
 
 # XXX: copy-paste from Element.copy partially.
@@ -212,7 +212,27 @@ def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
 	return ElementOperation.none
 
 
+def get_root(a: Sequence, b: Sequence) -> Sequence:
+	index = 0
+	for index, (i, j) in enumerate(zip(a, b)):
+		if i != j:
+			index -= 1
+			break
+	return a[:index+1]
+
+
+ContainerContext = namedtuple('ContainerContext', 'previous common', module=__name__)
+
+
 def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
+	annotation, plain = tee(tape)
+	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
+
+	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError or UnboundLocalError.
+	head_tape = next(annotated_tape, None)
+	if head_tape is None:
+		raise ValueError('tape must contain at least one pair of element and text.')
+
 	opening = []
 	node = tree_root
 	while len(node):
@@ -227,33 +247,41 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 		node = node[-1]
 	ending = tuple(ending)
 
-	def get_root(a, b):
-		root_index = 0
-		for index, (i, j) in enumerate(zip(a, b)):
-			if i != j:
-				root_index -= 1
+	operation, (pointer, text) = head_tape
+	container_context = ContainerContext(pointer.path, pointer.path)
+	if operation is ElementOperation.none:
+		first_appear = pointer.path
+
+		opening_first_root = get_root(opening, first_appear)
+		for operation, (pointer, text) in annotated_tape:
+			if operation is not ElementOperation.none:
 				break
-		return a[:root_index+1]
+		head_tape = operation, (pointer, text)
 
-	annotation, plain = tee(tape)
-	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
+		first_present = pointer.path
+		present_root = get_root(opening_first_root, first_present)
+		if present_root >= opening_first_root:
+			stop = present_root
+			# The general thing of library is doing simple operation on xml without semantics.
+			# Guess container of first absent text chunk by common root of two elements.
+			# Hope document format handler recover from mistakes.
+			# I think the issue would be solved by aggregation of xml by semantic blocks in between in straighten.
+			family = get_root(first_appear, first_present)
+			stop += family[len(stop):]
+			if len(first_appear) > len(family) and first_appear[len(family)] != 0:
+				stop += first_appear[len(family)]-1,
+			assert stop
 
-	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError.
-	head_tape = next(annotated_tape, None)
-	if head_tape is None:
-		raise ValueError('tape must contain at least one pair of element and text.')
+			yield {Operation.copy: Range(opening, stop)}
+
+	annotated_tape = chain((head_tape,), annotated_tape)
 
 	copy_range_start = None
 	last_text_path = None
-	full_tape = chain(
-		((ElementOperation.copy, (ElementPointer(opening, 0, 0, 0, True), '')), head_tape,),
-		annotated_tape,
-		# ((ElementOperation.copy, (ending, '')),),
-		# ((ElementOperation.none, ((), '')),),
-	)
 	previous_position = ((), 0, 0)
-	for operation, (pointer, text) in full_tape:
+	for operation, (pointer, text) in annotated_tape:
 		path = pointer.path
+		container_context = ContainerContext(path, get_root(container_context.previous, path))
 		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
 		# debug(operation, position, make_x(tree_root, path), text)
 		# print('')
@@ -278,6 +306,9 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 				yield {Operation.copy: Range(path, path)}
 				last_text_path = path
 			yield {Operation.set_text: text}
+
+		else:
+			raise RuntimeError(f'Unsupported operation {operation}.', operation)
 
 		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
 		previous_position = position
