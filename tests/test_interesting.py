@@ -4,7 +4,7 @@ from typing import List
 
 from saganineeleven.contrib import docx, odt
 from saganineeleven.contrib.django import Lexer, render
-from saganineeleven.executor import enforce, play, make_x
+from saganineeleven.executor import enforce, decode, make_x
 from saganineeleven.straighten import straighten, Path as ElementPath
 from saganineeleven.stringify import stringify, parse
 from xml.etree.ElementTree import parse as xml_parse, Element
@@ -26,7 +26,7 @@ def test():
 			origin_tree = xml_parse(stream)
 			origin_root = origin_tree.getroot()
 			log = []
-			for op in play(origin_root, parse(result)):
+			for op in decode(origin_root, parse(result)):
 				operation, value = next(iter(op.items()))
 				if operation is operation.copy:
 					value = [[value.start, make_x(origin_root, value.start)], [value.stop, make_x(origin_root, value.stop)]]

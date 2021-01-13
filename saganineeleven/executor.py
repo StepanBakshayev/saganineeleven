@@ -221,10 +221,7 @@ def get_root(a: Sequence, b: Sequence) -> Sequence:
 	return a[:index+1]
 
 
-ContainerContext = namedtuple('ContainerContext', 'previous common', module=__name__)
-
-
-def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
+def decode(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
 	annotation, plain = tee(tape)
 	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
 
@@ -247,8 +244,10 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 		node = node[-1]
 	ending = tuple(ending)
 
+	container_borders = deque()
+
+
 	operation, (pointer, text) = head_tape
-	container_context = ContainerContext(pointer.path, pointer.path)
 	if operation is ElementOperation.none:
 		first_appear = pointer.path
 
@@ -266,7 +265,7 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 			stop = present_root
 			# The general thing of library is doing simple operation on xml without semantics.
 			# Guess container of first absent text chunk by common root of two elements.
-			# Hope document format handler recover from mistakes.
+			# Hope document format handler recovers from mistakes.
 			# I think the issue would be solved by aggregation of xml by semantic blocks in between in straighten.
 			family = get_root(first_appear, first_present)
 			stop += family[len(stop):]
@@ -279,7 +278,6 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 	annotated_tape = chain(
 		(head_tape,),
 		annotated_tape,
-		# ((ElementOperation.copy, (ElementPointer(path=ending, representation_length=0, offset=0, length=0, is_constant=True), '')),),
 	)
 
 	copy_range_start = None
@@ -287,7 +285,6 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 	previous_position = ((), 0, 0)
 	for operation, (pointer, text) in annotated_tape:
 		path = pointer.path
-		container_context = ContainerContext(path, get_root(container_context.previous, path))
 		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
 		# debug(operation, position, make_x(tree_root, path), text)
 		# print('')
@@ -318,6 +315,25 @@ def play(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iter
 
 		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
 		previous_position = position
+
+	# XXX: mirror trick as for opening. It is decide affiliation of ending as:
+	# - part of container of last skipped element
+	# - present sibling after container of last skipped element
+	# - stop bound of copy range
+	if operation is ElementOperation.copy:
+		assert copy_range_start
+		yield {Operation.copy: Range(copy_range_start, ending)}
+
+	elif operation is ElementOperation.set_text:
+		# Ignore case explicitly.
+		pass
+
+	elif operation is ElementOperation.none:
+		# raise NotImplementedError
+		pass
+
+	else:
+		raise RuntimeError(f'Unsupported operation {operation}.', operation)
 
 
 def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
