@@ -4,12 +4,12 @@ from io import StringIO
 from pathlib import Path
 
 import pytest
+from devtools import debug
 
 from saganineeleven.contrib.django import Lexer, render
 from saganineeleven.contrib.docx import text_nodes, convert
-from saganineeleven.executor import get_root, decode, make_x, Operation, Range
-from xml.etree.ElementTree import parse as xml_parse
-
+from saganineeleven.executor import get_root, delineate_boundaries, fake_enforce
+from xml.etree.ElementTree import parse as xml_parse, ElementTree
 
 from saganineeleven.straighten import straighten
 from saganineeleven.stringify import stringify, parse
@@ -22,6 +22,7 @@ def test_get_root():
 	assert get_root('0ac143', '0abi[wg') == '0a'
 
 
+@pytest.mark.skip
 def test_opening_container_none_copy_ending():
 	sample = (
 		{Operation.copy: Range((0, 0, 0, 0), (0, 0, 0))},  # XXX: optimize this for deep copy of (0, 0, 0).
@@ -41,13 +42,14 @@ def test_opening_container_none_copy_ending():
 		assert log == sample
 
 
+@pytest.mark.skip
 def test_opening_container_copy_none_ending():
 	from ruamel.yaml import YAML
 	yaml = YAML()
 
 	sample = (
 		{Operation.copy: Range((0, 0, 0, 0), (0, 0, 1))},  # XXX: optimize this for deep copy of (0, 0, 0).
-		{Operation.copy: Range((0, 1), (0, 1, 5))},
+		{Operation.copy: Range((0, 1), (0, 1, 5))},  # XXX: optimize this for deep copy of (0, 1).
 	)
 
 	with (fixture_path/'paragraph_copy_none.docx.xml').open('br') as stream:
@@ -71,3 +73,22 @@ def test_opening_container_copy_none_ending():
 			print('')
 
 		assert tuple(log) == sample
+
+
+def test_boundaries():
+	with (fixture_path/'terminals_in_different_containers.docx.xml').open('br') as stream:
+		content, line = straighten(stream, Lexer, text_nodes, convert)
+		assert content is content.template
+		stream.seek(0)
+		origin_tree = xml_parse(stream)
+		origin_root = origin_tree.getroot()
+
+		boundaries = delineate_boundaries(origin_root, line)
+		builder = fake_enforce(origin_root, line, boundaries)
+		debug(builder)
+		buffer = StringIO()
+		print('')
+		with (Path()/'result.docx.xml').open('bw') as stream:
+			ElementTree(builder.destination).write(stream, encoding='utf-8', xml_declaration=True)
+
+	assert False

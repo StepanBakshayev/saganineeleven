@@ -17,8 +17,8 @@ import re
 from collections import deque, Counter, namedtuple
 from dataclasses import dataclass, replace
 from enum import Enum
-from itertools import chain
-from typing import Tuple, List, Set, Callable
+from itertools import chain, count
+from typing import Tuple, List, Set, Callable, Sequence
 from xml.etree.ElementTree import iterparse, ElementTree, Element
 
 from devtools import debug
@@ -48,7 +48,7 @@ Path = Tuple[Index, ...]
 
 
 @dataclass(frozen=True)
-class ElementPointer:
+class ShadowElement:
 	"""ElementPointer contains two kinds of information:
 	- navigation (fields: path)
 	- interpretation (fields: representation_length, offset, length, is_constant)
@@ -61,6 +61,7 @@ class ElementPointer:
 
 	It is allowed to have ElementPointer with zero length."""
 	path: Path
+	atom: int
 	representation_length: int
 	offset: int
 	length: int
@@ -155,13 +156,22 @@ def compress(element: elementstr) -> elementstr:
 	return element
 
 
+@dataclass(frozen=True)
+class ElementPointer:
+	path: Path
+	is_constant: bool
+	index: int
+
+
+Line = Sequence[Tuple[ElementPointer, str]]
+
+
 def straighten(
 	file,
 	Lexer,
 	text_nodes: Set[str],
 	converter: Callable[[Element], str]
-) -> Tuple[ContentType, List[elementstr]]:
-	text = []
+) -> Tuple[ContentType, Line]:
 	lexer = Lexer()
 	content_type = ContentType.plaintext
 	# XXX: ElementTree construct whole tree in memory anyway. This consumes memory for nothing.
@@ -176,8 +186,9 @@ def straighten(
 		elif event == 'end':
 			if element.tag in text_nodes:
 				chunk = elementstr(converter(element))
-				chunk.elements = ElementPointer(
+				chunk.elements = ShadowElement(
 					path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
+					atom=text_nodes[element.tag],
 					representation_length=len(chunk),
 					offset=0,
 					length=len(chunk),
@@ -192,25 +203,42 @@ def straighten(
 		else:
 			raise RuntimeError(f'Unsupported event type {event} from ElementTree.iterparse().')
 
+	line = []
+	index = 0
+	previous_path = ()
+
 	lexer.close()
-	for token, element in lexer.read_events():
+	for token, estr in lexer.read_events():
+		elements, text = estr.elements, str(estr)
 		if token is Token.terminal:
+			content_type = ContentType.template
+
+			first, *rest = elements
+			container = tuple(reversed(first.path))[-first.atom:]
+			if any(container != tuple(reversed(e.path))[-e.atom:] for e in rest):
+				raise RuntimeError(f'Terminal {token} `{text!s}` is splitted across different atoms {elements!r}.', token, text, elements)
+
 			# There are two interesting cases for further processing.
 			# It is substitution with variable. It is coping with cycle.
 			# Terminal is consuming by template engine. Leaves breadcrumbs before for variable and after for cycle.
 			# Once more terminal can be splitted by many elements, use first and ignore others.
-			content_type = ContentType.template
-			solid = elementstr(element)
 			# XXX: this is wrong. It is Poor's man solution.
-			head, tail = element.elements[0], element.elements[-1]
-			solid.elements = (
-				replace(head, length=len(element), is_constant=False),
+			head, tail = elements[0], elements[-1]
+			elements = (
+				replace(head, length=len(estr), is_constant=False),
 				replace(tail, offset=tail.offset+tail.length, length=0, is_constant=False),
 			)
-			element = solid
-		elif token is Token.text:
-			element = compress(element)
 
-		text.append(element)
+		offset = 0
+		for element in elements:
+			# XXX: put in test check for continuous index numbers.
+			if element.path != previous_path:
+				index += 1
+				previous_path = element.path
+			line.append((
+				ElementPointer(path=element.path, is_constant=element.is_constant, index=index),
+				text[offset:offset+element.length],
+			))
+			offset += element.length
 
-	return content_type, text
+	return content_type, line

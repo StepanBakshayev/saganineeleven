@@ -13,8 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-import dataclasses
+from dataclasses import dataclass, field
 from enum import Enum
+from operator import itemgetter
 from xml.etree import ElementPath
 from xml.etree.ElementTree import ElementTree, parse, Element
 from typing_extensions import Literal
@@ -23,193 +24,9 @@ from devtools import debug
 
 from itertools import islice, tee, chain
 from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List
+from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List, Mapping, TypeVar, NewType
 
-from .straighten import ElementPointer, Path
-
-TagIndex = namedtuple('TagIndex', 'namespace name index', module=__name__)
-
-
-# XXX: copy-paste from Element.copy partially.
-def element_copy(element: Element) -> Element:
-	new = element.makeelement(element.tag, element.attrib)
-	new.text = element.text
-	new.tail = element.tail
-	return new
-
-
-def element_deepcopy(element: Element):
-	new = element_copy(element)
-	for child in element:
-		new.append(element_deepcopy(child))
-	return new
-
-
-def find(source: Element, tag_index: TagIndex) -> Tuple[int, Element]:
-	count = 0
-	tag = tag_index.name
-	if tag_index.namespace:
-		tag = f'{{{tag_index.namespace}}}{tag}'
-	for index, child in enumerate(source):
-		if child.tag == tag:
-			if count == tag_index.index:
-				return index, child
-			count += 1
-	raise ValueError(f'{tag_index!r} was not found in {source.tag}. Looked up for {tag!r}.', tag_index, tag, source)
-
-
-def lift_up(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...]):
-	for tag_index in reversed(position):
-		source.pop()
-		destination.pop()
-
-		origin = source[-1]
-		position_index, _ = find(origin, tag_index)
-		clone = destination[-1]
-		for successor in origin[position_index+1:]:
-			clone.append(element_deepcopy(successor))
-
-
-def move_forward(source: Deque[Element], destination: Deque[Element], position: TagIndex, target: TagIndex):
-	source.pop()
-	destination.pop()
-
-	origin = source[-1]
-	position_index, _ = find(origin, position)
-	target_index, _ = find(origin, target)
-	clone = destination[-1]
-	for successor in origin[position_index+1:target_index]:
-		new = element_deepcopy(successor)
-		# XXX: bug here. No one test catches it.
-		clone[-1].append(new)
-
-
-def start_target(source: Deque[Element], destination: Deque[Element], target: TagIndex):
-	origin = source[-1]
-	target_index, target_node = find(origin, target)
-	new = element_copy(target_node)
-	clone = destination[-1]
-	clone.append(new)
-
-	source.append(target_node)
-	destination.append(new)
-
-
-def go_down(source: Deque[Element], destination: Deque[Element], target: Tuple[TagIndex, ...]):
-	for tag_index in target:
-		origin = source[-1]
-		target_index, target_node = find(origin, tag_index)
-		clone = destination[-1]
-		for predecessor in origin[0:target_index]:
-			clone.append(element_deepcopy(predecessor))
-		new = element_copy(target_node)
-		clone.append(new)
-
-		source.append(target_node)
-		destination.append(new)
-
-
-def copy(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...], target: Tuple[TagIndex, ...]):
-	assert source
-	assert destination
-	assert position
-	assert target
-	assert len(source) == len(destination) == len(position), (source, destination, position)
-	assert position[0] == target[0]
-	assert position != target
-
-	root_index = 0
-	for root_index, (current_pointer, target_pointer) in enumerate(zip(position, target)):
-		if current_pointer != target_pointer:
-			root_index -= 1
-			break
-
-	branch_index = root_index + 1
-
-	# XXX: I didn't cope with general algorithm. I split handling by simple steps and make script.
-	if root_index == 0 and len(target) == 1:
-		lift_up(source, destination, position[1:])
-
-	else:
-		lift_up(source, destination, position[branch_index+1:])
-
-		if branch_index < len(target):
-			if branch_index < len(position):
-				move_forward(source, destination, position[branch_index], target[branch_index])
-				assert len(source) == len(destination) == (root_index + 1), (source, destination, root_index)
-
-			start_target(source, destination, target[branch_index])
-			assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
-
-			go_down(source, destination, target[branch_index+1:])
-
-	assert len(source) == len(destination) == len(target), (source, destination, target)
-
-
-# XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
-def append(place: Element, text):
-	place.text += text
-
-
-# XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
-def set(place: Element, text):
-	place.text = text
-
-
-# plane:
-# - text
-# - element
-# element:
-# - direction
-# - action
-
-
-# Utility function for debug purpose.
-def make_x(root: Element, path: ElementPath) -> List[str]:
-	if path is None:
-		return 'None'
-	parent = root
-	tag = parent.tag
-	count = 0
-	chunks = [f'{tag}[{count}]']
-	for index in path:
-		try:
-			child = parent[index]
-		except IndexError:
-			chunks.append(f'{parent}?{index}')
-			break
-		tag = child.tag
-		count = 0
-		for c in parent:
-			if c.tag == tag:
-				if c == child:
-					break
-				count += 1
-		chunks.append(f'{tag}[{count}]')
-		parent = child
-	return chunks
-
-
-Operation = Enum('Operation', 'copy set_text', module=__name__)
-
-@dataclasses.dataclass(frozen=True)
-class Range:
-	start: Path
-	stop: Path
-
-ElementOperation = Enum('ElementOperation', 'copy set_text none', module=__name__)
-
-
-def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
-	if pointer.is_constant:
-		assert pointer.offset == 0, (pointer, text)
-		assert pointer.length == len(text)
-		return ElementOperation.copy
-	elif text:
-		assert pointer.offset < pointer.representation_length, (pointer, text)
-		assert pointer.length, (pointer, text)
-		return ElementOperation.set_text
-	return ElementOperation.none
+from .straighten import ElementPointer, Path, Line, Index
 
 
 def get_root(a: Sequence, b: Sequence) -> Sequence:
@@ -221,228 +38,600 @@ def get_root(a: Sequence, b: Sequence) -> Sequence:
 	return a[:index+1]
 
 
-def decode(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
-	annotation, plain = tee(tape)
-	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
-
-	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError or UnboundLocalError.
-	head_tape = next(annotated_tape, None)
-	if head_tape is None:
-		raise ValueError('tape must contain at least one pair of element and text.')
-
-	opening = []
-	node = tree_root
-	while len(node):
-		opening.append(0)
-		node = node[0]
-	opening = tuple(opening)
-
-	ending = []
-	node = tree_root
-	while len(node):
-		ending.append(len(node)-1)
-		node = node[-1]
-	ending = tuple(ending)
-
-	container_borders = deque()
+# XXX: copy-paste from Element.copy partially.
+def element_selfcopy(element: Element) -> Element:
+	new = element.makeelement(element.tag, element.attrib)
+	new.text = element.text
+	new.tail = element.tail
+	return new
 
 
-	operation, (pointer, text) = head_tape
-	if operation is ElementOperation.none:
-		first_appear = pointer.path
-
-		opening_first_root = get_root(opening, first_appear)
-		for operation, (pointer, text) in annotated_tape:
-			if operation is not ElementOperation.none:
-				break
-		if operation is ElementOperation.none:
-			raise RuntimeError('Tape is full of empty elements.')
-		head_tape = operation, (pointer, text)
-
-		first_present = pointer.path
-		present_root = get_root(opening_first_root, first_present)
-		if present_root >= opening_first_root:
-			stop = present_root
-			# The general thing of library is doing simple operation on xml without semantics.
-			# Guess container of first absent text chunk by common root of two elements.
-			# Hope document format handler recovers from mistakes.
-			# I think the issue would be solved by aggregation of xml by semantic blocks in between in straighten.
-			family = get_root(first_appear, first_present)
-			stop += family[len(stop):]
-			if len(first_appear) > len(family) and first_appear[len(family)] != 0:
-				stop += first_appear[len(family)]-1,
-			assert stop
-
-			yield {Operation.copy: Range(opening, stop)}
-
-	annotated_tape = chain(
-		(head_tape,),
-		annotated_tape,
-	)
-
-	copy_range_start = None
-	last_text_path = None
-	previous_position = ((), 0, 0)
-	for operation, (pointer, text) in annotated_tape:
-		path = pointer.path
-		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
-		# debug(operation, position, make_x(tree_root, path), text)
-		# print('')
-		if operation is ElementOperation.none:
-			if copy_range_start:
-				root = get_root(copy_range_start, path)
-				branch_index = len(root)
-				start_successor = copy_range_start[branch_index] + 1
-				end_exclude = path[branch_index]
-				if end_exclude == start_successor:
-					yield {Operation.copy: Range(copy_range_start, root+(start_successor,))}
-				else:
-					yield {Operation.copy: Range(copy_range_start, root+(end_exclude-1,))}
-				copy_range_start = None
-
-		elif operation is ElementOperation.copy:
-			if copy_range_start is None:
-				copy_range_start = path
-
-		elif operation is ElementOperation.set_text:
-			if path != last_text_path:
-				yield {Operation.copy: Range(path, path)}
-				last_text_path = path
-			yield {Operation.set_text: text}
-
-		else:
-			raise RuntimeError(f'Unsupported operation {operation}.', operation)
-
-		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
-		previous_position = position
-
-	# XXX: mirror trick as for opening. It is decide affiliation of ending as:
-	# - part of container of last skipped element
-	# - present sibling after container of last skipped element
-	# - stop bound of copy range
-	if operation is ElementOperation.copy:
-		assert copy_range_start
-		yield {Operation.copy: Range(copy_range_start, ending)}
-
-	elif operation is ElementOperation.set_text:
-		# Ignore case explicitly.
-		pass
-
-	elif operation is ElementOperation.none:
-		# raise NotImplementedError
-		pass
-
-	else:
-		raise RuntimeError(f'Unsupported operation {operation}.', operation)
+def element_deepcopy(element: Element):
+	new = element_selfcopy(element)
+	for child in element:
+		new.append(element_deepcopy(child))
+	return new
 
 
-def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
-	"""
-	Enforce contains those operations:
-	- substitute variables
-	- skip terminals
-	- drop conditions body
-	- copy partial or allocate place for new iteration of cycle body
-	- mirror unchanged text in between
-
-	Substitute requires managing text of element. Substitute can happen many times in one element or completely replace whole text.
-	Skip terminals is a like substitute with zero length text. It opens door to ignore some nodes from origin.
-	Drop conditions body requires accurate cut part of tree (partial copy in terms of this kind implementation) on boundary of different levels of hierarchy.
-	Vague operation of cycle body requires look behind on origin tree and construct new branch for inside operation from above.
-	Mirror unchanged text (in terms of template) is a suspect for variant of operations from above.
-	"""
-	# XXX: It is memory consumption here.
-	origin_tree = parse(origin)
-
-	# XXX: It is just for starting implementation to copy root.
-	# XXX: It is bad design to copy each element from one tree to another.
-	result_tree = ElementTree(origin_tree.getroot().copy())
-	# Free tinking. Postpone ideas by finishing cycling.
-	# TreeBuilder is used to construct ElementTree instead of incremental dump as I think at fist.
-	# XXX: We don't use or rely of nodes in memory. Consider writing incremental dump against xml.etree.ElementTree._serialize_xml.
-	# XXX: We don't need parse origin neither. We copy substring from original to result.
-
-	# XXX: return to Element and rewrite it for structuted path.
-	def restore_path(element: Element):
-		for (namespace_id, tag), index in element.path:
-			yield TagIndex(
-				namespace=element.namespaces[namespace_id],
-				name=tag,
-				index=index,
-			)
-
-	log = []
-	origin_root = origin_tree.getroot()
-	result_root = element_copy(origin_root)
-	result = ElementTree(result_root)
-	element_tag = result_root.tag
-	namespace, tagname = '', element_tag
-	match = namespace_re.match(element_tag)
-	if match:
-		namespace, tagname = match.group('namespace', 'tagname')
-	destination = deque((result_root,))
-	source = deque((origin_root,))
-	initial_path = TagIndex(namespace, tagname, 0),
-	previous_path = initial_path
-	previous_offset = 0
-	for element, text in tape:
-		path = tuple(restore_path(element))
-		if path == previous_path and element.offset != previous_offset:
-			plane = Plane.text
-			direction = Direction.none
-			action = Action.none
-		else:
-			plane = Plane.element
-			if path > previous_path:
-				direction = Direction.forward
-			else:
-				direction = Direction.backward
-			action = Action.copy
-			if element.length and not text:
-				action = Action.skip
-
-		tag_repr = lambda t: f'{t.name}[{t.index}]'
-		log.append([
-			['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
-			[plane.name, direction.name, action.name],
-			text,
-		])
-		# debug(log[-1])
-
-		if plane is Plane.element:
-			if action is Action.copy:
-				copy(source, destination, previous_path, path)
-				set(destination[-1], text)
-				previous_path = path
-				previous_offset = element.offset
-			elif action is Action.skip:
-				# explicit handling.
-				# XXX: call middleware for handling skipping. copy will be handling too in near future.
-				root_index = 0
-				for root_index, (a, b) in enumerate(zip(previous_path, path)):
-					if a != b:
-						root_index -= 1
-						break
-				source = deque(islice(source, root_index+1))
-				destination = deque(islice(destination, root_index+1))
-				previous_path = previous_path[:root_index+1]
-				previous_offset = element.offset
-			else:
-				raise RuntimeError('Unsupported action', action)
-		elif plane is Plane.text:
-			append(destination[-1], text)
-			previous_offset = element.offset
-		else:
-			raise RuntimeError('Unsupported plane', plane)
+@dataclass(frozen=True)
+class Route:
+	branch: Path  # Elements from this list is coped by self.
+	crossroad: Tuple[Index, ...]  # Elements from this list is coped deep.
 
 
-	tag_repr = lambda t: f'{t.name}[{t.index}]'
-	log.append([
-		['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
-		[plane.name, direction.name, action.name],
-		text,
-	])
-	# debug(log[-1])
-	copy(source, destination, previous_path, initial_path)
+@dataclass
+class TreeBuilder:
+	source: Element
+	destination: Element = field(init=False)
+	source_chain: List[Element] = field(default_factory=list, init=False)
+	destination_chain: List[Element] = field(default_factory=list, init=False)
+	current_route: Route = field(default_factory=lambda: Route((), ()))
 
-	return result, log
+	def __post_init__(self):
+		self.source_chain.append(self.source)
+
+		self.destination = element_selfcopy(self.source)
+		self.destination_chain.append(self.destination)
+
+	def insert(self, route):
+		root = get_root(route.branch, self.current_route.branch)
+		branch_index = len(root)
+		# _branch starts with root.
+		self.source_chain = self.source_chain[:branch_index + 1]
+		self.destination_chain = self.destination_chain[:branch_index + 1]
+
+		for index in route.branch[branch_index:]:
+			# There are many similar names, append, indexing. Use intermediate names for different terms.
+			origin_parent = self.source_chain[-1]
+			parent = self.destination_chain[-1]
+
+			origin = origin_parent[index]
+			new = element_selfcopy(origin)
+			parent.append(new)
+
+			self.source_chain.append(origin)
+			self.destination_chain.append(new)
+
+		origin_parent = self.source_chain[-1]
+		parent = self.destination_chain[-1]
+		for index in route.crossroad:
+			origin = origin_parent[index]
+			new = element_deepcopy(origin)
+			parent.append(new)
+
+		self.current_route = route
+
+
+@dataclass(frozen=True)
+class Boundary:
+	ending: Tuple[Route, ...]
+	gap: Tuple[Route, ...]
+	opening: Tuple[Route, ...]
+
+
+def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Boundary]:
+	registry = {}
+
+	OPENER = 0
+
+	def skip_constant_sequence(pointers):
+		last_constant = False
+		for pointer in pointers:
+			if last_constant and pointer.is_constant:
+				continue
+			yield pointer
+			last_constant = pointer.is_constant
+
+	pointers = skip_constant_sequence(map(itemgetter(0), line))
+
+	def get_chain(tree_root, path: Iterator[Path]):
+		node = tree_root
+		for index in path:
+			node = node[index]
+			yield node
+
+	def make_ending_range(chain, pointer_path, waterline):
+		assert len(chain) == len(pointer_path)
+		ending = []
+		for i in range(len(pointer_path)-1, waterline):
+			parent = chain[i-1]
+			index = pointer_path[i]
+			if index + 1 < len(parent):
+				ending.append(Route(pointer_path[:i], tuple(range(index, len(parent)))))
+		return tuple(ending)
+
+	def make_opening_range(pointer_path, waterline):
+		opening = []
+		for i in range(waterline, len(pointer_path)):
+			index = pointer_path[i]
+			if index != OPENER:
+				opening.append(Route(pointer_path[:i], tuple(range(0, index))))
+		return tuple(opening)
+
+	previous_pointer = next(pointers)
+	previous_route = tuple(get_chain(tree_root, previous_pointer.path))
+	common_root = previous_pointer.path
+	for pointer in pointers:
+		if previous_pointer.path != pointer.path:
+			ending = ()
+			gap = ()
+			opening = ()
+
+			root = get_root(previous_pointer.path, pointer.path)
+			assert root < previous_pointer.path < pointer.path
+			branch_index = len(root)
+
+			if branch_index + 1 < len(previous_pointer.path):
+				ending = make_ending_range(previous_route, previous_pointer.path, branch_index+1)
+
+			gap_indexes = root[previous_pointer.path[branch_index]+1:pointer.path[branch_index]-1]
+			if gap_indexes:
+				gap = Route(root, gap_indexes)
+
+			if branch_index + 1 < len(pointer.path):
+				opening = make_opening_range(pointer.path, branch_index+1)
+
+			if any((ending, gap, opening)):
+				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
+				debug(previous_pointer, pointer, registry[pointer.index])
+
+		previous_pointer = pointer
+		previous_route = tuple(get_chain(tree_root, previous_pointer.path))
+		common_root = get_root(common_root, previous_pointer.path)
+
+	branch_index = len(common_root)
+	gap = ()
+
+	first_pointer = line[0][0]
+	ending = ()
+	opening = make_opening_range(first_pointer.path, branch_index)
+	if first_pointer.path[branch_index] != OPENER:
+		ending = Route(common_root, tuple(range(0, first_pointer.path[branch_index]))),
+	registry[first_pointer.index-1] = Boundary(ending=ending, gap=gap, opening=opening)
+	debug(first_pointer, registry[first_pointer.index-1])
+
+	last_pointer = line[-1][0]
+	ending = make_ending_range(previous_route, last_pointer.path, branch_index)
+	opening = ()
+	if last_pointer.path[branch_index] < len(previous_route[branch_index-1]):
+		opening = Route(common_root, tuple(range(last_pointer.path[branch_index]+1, len(previous_route[branch_index-1])))),
+	registry[last_pointer.index+1] = Boundary(ending=ending, gap=gap, opening=opening)
+	debug(last_pointer, registry[last_pointer.index+1])
+
+	return registry
+
+
+def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary]) -> TreeBuilder:
+	builder = TreeBuilder(source)
+
+	for pointer, _ in tape:
+		previous = pointer.index - 1
+		if previous in boundaries:
+			boundary = boundaries[previous]
+			debug(boundary)
+			for route in chain(boundary.ending, boundary.gap, boundary.opening):
+				builder.insert(route)
+		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
+
+	boundary = boundaries[pointer.index+1]
+	for route in chain(boundary.ending, boundary.gap, boundary.opening):
+		builder.insert(route)
+
+	return builder
+
+
+# TagIndex = namedtuple('TagIndex', 'namespace name index', module=__name__)
+#
+#
+#
+#
+# def find(source: Element, tag_index: TagIndex) -> Tuple[int, Element]:
+# 	count = 0
+# 	tag = tag_index.name
+# 	if tag_index.namespace:
+# 		tag = f'{{{tag_index.namespace}}}{tag}'
+# 	for index, child in enumerate(source):
+# 		if child.tag == tag:
+# 			if count == tag_index.index:
+# 				return index, child
+# 			count += 1
+# 	raise ValueError(f'{tag_index!r} was not found in {source.tag}. Looked up for {tag!r}.', tag_index, tag, source)
+#
+#
+# def lift_up(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...]):
+# 	for tag_index in reversed(position):
+# 		source.pop()
+# 		destination.pop()
+#
+# 		origin = source[-1]
+# 		position_index, _ = find(origin, tag_index)
+# 		clone = destination[-1]
+# 		for successor in origin[position_index+1:]:
+# 			clone.append(element_deepcopy(successor))
+#
+#
+# def move_forward(source: Deque[Element], destination: Deque[Element], position: TagIndex, target: TagIndex):
+# 	source.pop()
+# 	destination.pop()
+#
+# 	origin = source[-1]
+# 	position_index, _ = find(origin, position)
+# 	target_index, _ = find(origin, target)
+# 	clone = destination[-1]
+# 	for successor in origin[position_index+1:target_index]:
+# 		new = element_deepcopy(successor)
+# 		# XXX: bug here. No one test catches it.
+# 		clone[-1].append(new)
+#
+#
+# def start_target(source: Deque[Element], destination: Deque[Element], target: TagIndex):
+# 	origin = source[-1]
+# 	target_index, target_node = find(origin, target)
+# 	new = element_copy(target_node)
+# 	clone = destination[-1]
+# 	clone.append(new)
+#
+# 	source.append(target_node)
+# 	destination.append(new)
+#
+#
+# def go_down(source: Deque[Element], destination: Deque[Element], target: Tuple[TagIndex, ...]):
+# 	for tag_index in target:
+# 		origin = source[-1]
+# 		target_index, target_node = find(origin, tag_index)
+# 		clone = destination[-1]
+# 		for predecessor in origin[0:target_index]:
+# 			clone.append(element_deepcopy(predecessor))
+# 		new = element_copy(target_node)
+# 		clone.append(new)
+#
+# 		source.append(target_node)
+# 		destination.append(new)
+#
+#
+# def copy(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...], target: Tuple[TagIndex, ...]):
+# 	assert source
+# 	assert destination
+# 	assert position
+# 	assert target
+# 	assert len(source) == len(destination) == len(position), (source, destination, position)
+# 	assert position[0] == target[0]
+# 	assert position != target
+#
+# 	root_index = 0
+# 	for root_index, (current_pointer, target_pointer) in enumerate(zip(position, target)):
+# 		if current_pointer != target_pointer:
+# 			root_index -= 1
+# 			break
+#
+# 	branch_index = root_index + 1
+#
+# 	# XXX: I didn't cope with general algorithm. I split handling by simple steps and make script.
+# 	if root_index == 0 and len(target) == 1:
+# 		lift_up(source, destination, position[1:])
+#
+# 	else:
+# 		lift_up(source, destination, position[branch_index+1:])
+#
+# 		if branch_index < len(target):
+# 			if branch_index < len(position):
+# 				move_forward(source, destination, position[branch_index], target[branch_index])
+# 				assert len(source) == len(destination) == (root_index + 1), (source, destination, root_index)
+#
+# 			start_target(source, destination, target[branch_index])
+# 			assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
+#
+# 			go_down(source, destination, target[branch_index+1:])
+#
+# 	assert len(source) == len(destination) == len(target), (source, destination, target)
+#
+#
+# # XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
+# def append(place: Element, text):
+# 	place.text += text
+#
+#
+# # XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
+# def set(place: Element, text):
+# 	place.text = text
+#
+#
+# # plane:
+# # - text
+# # - element
+# # element:
+# # - direction
+# # - action
+#
+#
+# # Utility function for debug purpose.
+# def make_x(root: Element, path: ElementPath) -> List[str]:
+# 	if path is None:
+# 		return 'None'
+# 	parent = root
+# 	tag = parent.tag
+# 	count = 0
+# 	chunks = [f'{tag}[{count}]']
+# 	for index in path:
+# 		try:
+# 			child = parent[index]
+# 		except IndexError:
+# 			chunks.append(f'{parent}?{index}')
+# 			break
+# 		tag = child.tag
+# 		count = 0
+# 		for c in parent:
+# 			if c.tag == tag:
+# 				if c == child:
+# 					break
+# 				count += 1
+# 		chunks.append(f'{tag}[{count}]')
+# 		parent = child
+# 	return chunks
+#
+#
+# Operation = Enum('Operation', 'copy set_text', module=__name__)
+#
+#
+# ElementOperation = Enum('ElementOperation', 'copy set_text none', module=__name__)
+#
+#
+# def get_operation(pointer: ElementPointer, text: str) -> ElementOperation:
+# 	if pointer.is_constant:
+# 		assert pointer.offset == 0, (pointer, text)
+# 		assert pointer.length == len(text)
+# 		return ElementOperation.copy
+# 	elif text:
+# 		assert pointer.offset < pointer.representation_length, (pointer, text)
+# 		assert pointer.length, (pointer, text)
+# 		return ElementOperation.set_text
+# 	return ElementOperation.none
+#
+#
+
+#
+#
+# def decode(tree_root: Element, tape: Iterator[Tuple[ElementPointer, str]]) -> Iterator[Union[Dict[Literal[Operation.copy], Range], Dict[Literal[Operation.set_text], str]]]:
+# 	"""
+# 	This is not decode. It is interpretate or trans-something.
+#
+# 	Model of semantic-less xml of document format.
+# 	<container>
+# 		<opening>
+# 			...
+# 		</opening>
+# 		<element pointer>text</element pointer>
+# 		<element pointer>text</element pointer>
+# 		<element pointer>text</element pointer>
+# 		<ending>
+# 			...
+# 		</ending>
+# 	</container>
+# 	"""
+# 	annotation, plain = tee(tape)
+# 	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
+#
+# 	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError or UnboundLocalError.
+# 	head_tape = next(annotated_tape, None)
+# 	if head_tape is None:
+# 		raise ValueError('tape must contain at least one pair of element and text.')
+#
+# 	opening = []
+# 	node = tree_root
+# 	while len(node):
+# 		opening.append(0)
+# 		node = node[0]
+# 	opening = tuple(opening)
+#
+# 	ending = []
+# 	node = tree_root
+# 	while len(node):
+# 		ending.append(len(node)-1)
+# 		node = node[-1]
+# 	ending = tuple(ending)
+#
+# 	borders = deque()
+#
+#
+# 	copy_range_start = None
+# 	operation, (pointer, text) = head_tape
+# 	if operation is ElementOperation.none:
+# 		first_appear = pointer.path
+#
+# 		opening_first_root = get_root(opening, first_appear)
+# 		for operation, (pointer, text) in annotated_tape:
+# 			if operation is not ElementOperation.none:
+# 				break
+# 		if operation is ElementOperation.none:
+# 			raise RuntimeError('Tape is full of empty elements.')
+# 		head_tape = operation, (pointer, text)
+#
+# 		first_present = pointer.path
+# 		present_root = get_root(opening_first_root, first_present)
+# 		if present_root >= opening_first_root:
+# 			stop = present_root
+# 			# The general thing of library is doing simple operation on xml without semantics.
+# 			# Guess container of first absent text chunk by common root of two elements.
+# 			# Hope document format handler recovers from mistakes.
+# 			# I think the issue would be solved by aggregation of xml by semantic blocks in between in straighten.
+# 			family = get_root(first_appear, first_present)
+# 			stop += family[len(stop):]
+# 			if len(first_appear) > len(family) and first_appear[len(family)] != 0:
+# 				stop += first_appear[len(family)]-1,
+# 			assert stop
+#
+# 			yield {Operation.copy: Range(opening, stop)}
+#
+# 	else:
+# 		copy_range_start = opening
+#
+# 	annotated_tape = chain(
+# 		(head_tape,),
+# 		annotated_tape,
+# 	)
+#
+# 	last_text_path = None
+# 	previous_position = ((), 0, 0)
+# 	for operation, (pointer, text) in annotated_tape:
+# 		path = pointer.path
+# 		position = tuple(map(lambda n: getattr(pointer, n), ('path', 'offset', 'length')))
+# 		# debug(operation, position, make_x(tree_root, path), text)
+# 		# print('')
+# 		if operation is ElementOperation.none:
+# 			if copy_range_start:
+# 				root = get_root(copy_range_start, path)
+# 				branch_index = len(root)
+# 				start_successor = copy_range_start[branch_index] + 1
+# 				end_exclude = path[branch_index]
+# 				if end_exclude == start_successor:
+# 					yield {Operation.copy: Range(copy_range_start, root+(start_successor,))}
+# 				else:
+# 					yield {Operation.copy: Range(copy_range_start, root+(end_exclude-1,))}
+# 				copy_range_start = None
+#
+# 		elif operation is ElementOperation.copy:
+# 			if copy_range_start is None:
+# 				copy_range_start = path
+#
+# 		elif operation is ElementOperation.set_text:
+# 			if path != last_text_path:
+# 				yield {Operation.copy: Range(path, path)}
+# 				last_text_path = path
+# 			yield {Operation.set_text: text}
+#
+# 		else:
+# 			raise RuntimeError(f'Unsupported operation {operation}.', operation)
+#
+# 		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
+# 		previous_position = position
+#
+# 	# XXX: mirror trick as for opening. It is decide affiliation of ending as:
+# 	# - part of container of last skipped element
+# 	# - present sibling after container of last skipped element
+# 	# - stop bound of copy range
+# 	if operation is ElementOperation.copy:
+# 		assert copy_range_start
+# 		yield {Operation.copy: Range(copy_range_start, ending)}
+#
+# 	elif operation is ElementOperation.set_text:
+# 		# Ignore case explicitly.
+# 		pass
+#
+# 	elif operation is ElementOperation.none:
+# 		# raise NotImplementedError
+# 		pass
+#
+# 	else:
+# 		raise RuntimeError(f'Unsupported operation {operation}.', operation)
+#
+#
+# def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
+# 	"""
+# 	Enforce contains those operations:
+# 	- substitute variables
+# 	- skip terminals
+# 	- drop conditions body
+# 	- copy partial or allocate place for new iteration of cycle body
+# 	- mirror unchanged text in between
+#
+# 	Substitute requires managing text of element. Substitute can happen many times in one element or completely replace whole text.
+# 	Skip terminals is a like substitute with zero length text. It opens door to ignore some nodes from origin.
+# 	Drop conditions body requires accurate cut part of tree (partial copy in terms of this kind implementation) on boundary of different levels of hierarchy.
+# 	Vague operation of cycle body requires look behind on origin tree and construct new branch for inside operation from above.
+# 	Mirror unchanged text (in terms of template) is a suspect for variant of operations from above.
+# 	"""
+# 	# XXX: It is memory consumption here.
+# 	origin_tree = parse(origin)
+#
+# 	# XXX: It is just for starting implementation to copy root.
+# 	# XXX: It is bad design to copy each element from one tree to another.
+# 	result_tree = ElementTree(origin_tree.getroot().copy())
+# 	# Free tinking. Postpone ideas by finishing cycling.
+# 	# TreeBuilder is used to construct ElementTree instead of incremental dump as I think at fist.
+# 	# XXX: We don't use or rely of nodes in memory. Consider writing incremental dump against xml.etree.ElementTree._serialize_xml.
+# 	# XXX: We don't need parse origin neither. We copy substring from original to result.
+#
+# 	# XXX: return to Element and rewrite it for structuted path.
+# 	def restore_path(element: Element):
+# 		for (namespace_id, tag), index in element.path:
+# 			yield TagIndex(
+# 				namespace=element.namespaces[namespace_id],
+# 				name=tag,
+# 				index=index,
+# 			)
+#
+# 	log = []
+# 	origin_root = origin_tree.getroot()
+# 	result_root = element_copy(origin_root)
+# 	result = ElementTree(result_root)
+# 	element_tag = result_root.tag
+# 	namespace, tagname = '', element_tag
+# 	match = namespace_re.match(element_tag)
+# 	if match:
+# 		namespace, tagname = match.group('namespace', 'tagname')
+# 	destination = deque((result_root,))
+# 	source = deque((origin_root,))
+# 	initial_path = TagIndex(namespace, tagname, 0),
+# 	previous_path = initial_path
+# 	previous_offset = 0
+# 	for element, text in tape:
+# 		path = tuple(restore_path(element))
+# 		if path == previous_path and element.offset != previous_offset:
+# 			plane = Plane.text
+# 			direction = Direction.none
+# 			action = Action.none
+# 		else:
+# 			plane = Plane.element
+# 			if path > previous_path:
+# 				direction = Direction.forward
+# 			else:
+# 				direction = Direction.backward
+# 			action = Action.copy
+# 			if element.length and not text:
+# 				action = Action.skip
+#
+# 		tag_repr = lambda t: f'{t.name}[{t.index}]'
+# 		log.append([
+# 			['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
+# 			[plane.name, direction.name, action.name],
+# 			text,
+# 		])
+# 		# debug(log[-1])
+#
+# 		if plane is Plane.element:
+# 			if action is Action.copy:
+# 				copy(source, destination, previous_path, path)
+# 				set(destination[-1], text)
+# 				previous_path = path
+# 				previous_offset = element.offset
+# 			elif action is Action.skip:
+# 				# explicit handling.
+# 				# XXX: call middleware for handling skipping. copy will be handling too in near future.
+# 				root_index = 0
+# 				for root_index, (a, b) in enumerate(zip(previous_path, path)):
+# 					if a != b:
+# 						root_index -= 1
+# 						break
+# 				source = deque(islice(source, root_index+1))
+# 				destination = deque(islice(destination, root_index+1))
+# 				previous_path = previous_path[:root_index+1]
+# 				previous_offset = element.offset
+# 			else:
+# 				raise RuntimeError('Unsupported action', action)
+# 		elif plane is Plane.text:
+# 			append(destination[-1], text)
+# 			previous_offset = element.offset
+# 		else:
+# 			raise RuntimeError('Unsupported plane', plane)
+#
+#
+# 	tag_repr = lambda t: f'{t.name}[{t.index}]'
+# 	log.append([
+# 		['/'.join(map(tag_repr, previous_path)), '/'.join(map(tag_repr, path))],
+# 		[plane.name, direction.name, action.name],
+# 		text,
+# 	])
+# 	# debug(log[-1])
+# 	copy(source, destination, previous_path, initial_path)
+#
+# 	return result, log

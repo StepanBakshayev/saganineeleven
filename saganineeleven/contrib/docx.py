@@ -40,9 +40,9 @@ M = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
 
 
 text_nodes = {
-	f'{{{W}}}r',
-	f'{{{V}}}textpath',
-	f'{{{M}}}r',
+	f'{{{W}}}r': -1,
+	f'{{{V}}}textpath': 0,
+	f'{{{M}}}r': -1,
 }
 
 

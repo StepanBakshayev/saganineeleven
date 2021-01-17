@@ -39,7 +39,7 @@ TEXT = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
 
 
 text_nodes = {
-	f'{{{TEXT}}}p',
+	f'{{{TEXT}}}p': 0,
 }
 
 
