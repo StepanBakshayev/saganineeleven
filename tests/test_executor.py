@@ -75,6 +75,9 @@ def test_opening_container_copy_none_ending():
 		assert tuple(log) == sample
 
 
+# def test_make_opening_range():
+# 	make_opening_range((0, 1, 2, 1, 1), )
+
 def test_boundaries():
 	with (fixture_path/'terminals_in_different_containers.docx.xml').open('br') as stream:
 		content, line = straighten(stream, Lexer, text_nodes, convert)

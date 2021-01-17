@@ -74,6 +74,7 @@ class TreeBuilder:
 		self.destination_chain.append(self.destination)
 
 	def insert(self, route):
+		debug(route)
 		root = get_root(route.branch, self.current_route.branch)
 		branch_index = len(root)
 		# _branch starts with root.
@@ -109,10 +110,31 @@ class Boundary:
 	opening: Tuple[Route, ...]
 
 
+OPENER = 0
+
+
+def make_ending_range(chain, pointer_path, waterline):
+	assert len(chain) == len(pointer_path)
+	ending = []
+	for i in range(len(pointer_path)-1, waterline):
+		parent = chain[i-1]
+		index = pointer_path[i]
+		if index + 1 < len(parent):
+			ending.append(Route(pointer_path[:i], tuple(range(index, len(parent)))))
+	return tuple(ending)
+
+
+def make_opening_range(pointer_path, waterline):
+	opening = []
+	for i in range(waterline, len(pointer_path)):
+		index = pointer_path[i]
+		if index != OPENER:
+			opening.append(Route(pointer_path[:i], tuple(range(0, index))))
+	return tuple(opening)
+
+
 def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Boundary]:
 	registry = {}
-
-	OPENER = 0
 
 	def skip_constant_sequence(pointers):
 		last_constant = False
@@ -129,24 +151,6 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 		for index in path:
 			node = node[index]
 			yield node
-
-	def make_ending_range(chain, pointer_path, waterline):
-		assert len(chain) == len(pointer_path)
-		ending = []
-		for i in range(len(pointer_path)-1, waterline):
-			parent = chain[i-1]
-			index = pointer_path[i]
-			if index + 1 < len(parent):
-				ending.append(Route(pointer_path[:i], tuple(range(index, len(parent)))))
-		return tuple(ending)
-
-	def make_opening_range(pointer_path, waterline):
-		opening = []
-		for i in range(waterline, len(pointer_path)):
-			index = pointer_path[i]
-			if index != OPENER:
-				opening.append(Route(pointer_path[:i], tuple(range(0, index))))
-		return tuple(opening)
 
 	previous_pointer = next(pointers)
 	previous_route = tuple(get_chain(tree_root, previous_pointer.path))
@@ -172,8 +176,9 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 				opening = make_opening_range(pointer.path, branch_index+1)
 
 			if any((ending, gap, opening)):
+				debug(pointer.index, previous_pointer.path, pointer.path, branch_index+1, ending, gap, opening)
+				print()
 				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
-				debug(previous_pointer, pointer, registry[pointer.index])
 
 		previous_pointer = pointer
 		previous_route = tuple(get_chain(tree_root, previous_pointer.path))
@@ -187,8 +192,7 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 	opening = make_opening_range(first_pointer.path, branch_index)
 	if first_pointer.path[branch_index] != OPENER:
 		ending = Route(common_root, tuple(range(0, first_pointer.path[branch_index]))),
-	registry[first_pointer.index-1] = Boundary(ending=ending, gap=gap, opening=opening)
-	debug(first_pointer, registry[first_pointer.index-1])
+	registry[first_pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
 	last_pointer = line[-1][0]
 	ending = make_ending_range(previous_route, last_pointer.path, branch_index)
@@ -196,7 +200,6 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 	if last_pointer.path[branch_index] < len(previous_route[branch_index-1]):
 		opening = Route(common_root, tuple(range(last_pointer.path[branch_index]+1, len(previous_route[branch_index-1])))),
 	registry[last_pointer.index+1] = Boundary(ending=ending, gap=gap, opening=opening)
-	debug(last_pointer, registry[last_pointer.index+1])
 
 	return registry
 
@@ -204,16 +207,23 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary]) -> TreeBuilder:
 	builder = TreeBuilder(source)
 
+	previous_path = ()
 	for pointer, _ in tape:
-		previous = pointer.index - 1
-		if previous in boundaries:
-			boundary = boundaries[previous]
+		if pointer.path == previous_path:
+			continue
+
+		debug(pointer.index)
+		previous_path = pointer.path
+		if pointer.index in boundaries:
+			boundary = boundaries[pointer.index]
 			debug(boundary)
 			for route in chain(boundary.ending, boundary.gap, boundary.opening):
 				builder.insert(route)
 		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
+		print('')
 
 	boundary = boundaries[pointer.index+1]
+	debug(boundary)
 	for route in chain(boundary.ending, boundary.gap, boundary.opening):
 		builder.insert(route)
 
