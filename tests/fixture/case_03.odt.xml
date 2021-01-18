@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns5="http://openoffice.org/2009/office" xmlns:ns6="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:ns7="urn:oasis:names:tc:opendocument:xmlns:text:1.0" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Lohit Devanagari1" ns2:font-family="'Lohit Devanagari'" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="swiss" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="Таблица1" ns1:family="table">
+    <ns1:table-properties ns1:width="17cm" ns3:align="margins" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A" ns1:family="table-column">
+    <ns1:table-column-properties ns1:column-width="17cm" ns1:rel-column-width="65535*" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A1" ns1:family="table-cell">
+    <ns1:table-cell-properties ns4:padding="0.097cm" ns4:border="0.05pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Standard">
+    <ns1:text-properties ns5:rsid="00124c8a" ns5:paragraph-rsid="00124c8a" />
+  </ns1:style>
+  <ns1:style ns1:name="P2" ns1:family="paragraph" ns1:parent-style-name="Table_20_Contents">
+    <ns1:text-properties ns5:rsid="00124c8a" ns5:paragraph-rsid="00124c8a" />
+  </ns1:style>
+  <ns1:style ns1:name="P3" ns1:family="paragraph">
+    <ns1:paragraph-properties ns4:text-align="center" />
+  </ns1:style>
+  <ns1:style ns1:name="gr1" ns1:family="graphic">
+    <ns1:graphic-properties ns6:textarea-horizontal-align="justify" ns6:textarea-vertical-align="middle" ns6:auto-grow-height="false" ns4:min-height="1.685cm" ns4:min-width="1.685cm" ns1:run-through="foreground" ns1:wrap="run-through" ns1:number-wrapped-paragraphs="no-limit" ns1:vertical-pos="from-top" ns1:vertical-rel="paragraph" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph" />
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text>
+    <ns7:sequence-decls>
+      <ns7:sequence-decl ns7:display-outline-level="0" ns7:name="Illustration" />
+      <ns7:sequence-decl ns7:display-outline-level="0" ns7:name="Table" />
+      <ns7:sequence-decl ns7:display-outline-level="0" ns7:name="Text" />
+      <ns7:sequence-decl ns7:display-outline-level="0" ns7:name="Drawing" />
+      <ns7:sequence-decl ns7:display-outline-level="0" ns7:name="Figure" />
+    </ns7:sequence-decls>
+    <ns7:p ns7:style-name="P1">Paragraph</ns7:p>
+    <ns7:p ns7:style-name="P1">{{ var1 }}</ns7:p>
+    <ns3:table ns3:name="Таблица1" ns3:style-name="Таблица1">
+      <ns3:table-column ns3:style-name="Таблица1.A" />
+      <ns3:table-row ns3:style-name="TableLine94151640663472">
+        <ns3:table-cell ns3:style-name="Таблица1.A1" ns0:value-type="string">
+          <ns7:p ns7:style-name="P2">cell</ns7:p>
+        </ns3:table-cell>
+      </ns3:table-row>
+    </ns3:table>
+    <ns7:p ns7:style-name="P1">{{ var 2}}</ns7:p>
+    <ns7:p ns7:style-name="P1">
+      <ns6:custom-shape ns7:anchor-type="paragraph" ns6:z-index="0" ns6:name="Фигура1" ns6:style-name="gr1" ns6:text-style-name="P3" ns2:width="1.685cm" ns2:height="1.685cm" ns2:x="0.048cm" ns2:y="0.092cm">
+        <ns7:p ns7:style-name="P3">square</ns7:p>
+        <ns6:enhanced-geometry ns2:viewBox="0 0 21600 21600" ns6:type="rectangle" ns6:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N" />
+      </ns6:custom-shape>
+    </ns7:p>
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>

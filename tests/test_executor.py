@@ -79,13 +79,14 @@ def test_opening_container_copy_none_ending():
 # 	make_opening_range((0, 1, 2, 1, 1), )
 
 def test_boundaries():
-	with (fixture_path/'terminals_in_different_containers.docx.xml').open('br') as stream:
+	with (fixture_path/'case_03.docx.xml').open('br') as stream:
 		content, line = straighten(stream, Lexer, text_nodes, convert)
 		assert content is content.template
 		stream.seek(0)
 		origin_tree = xml_parse(stream)
 		origin_root = origin_tree.getroot()
 
+		debug(line)
 		boundaries = delineate_boundaries(origin_root, line)
 		builder = fake_enforce(origin_root, line, boundaries)
 		debug(builder)

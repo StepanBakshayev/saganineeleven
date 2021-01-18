@@ -74,7 +74,6 @@ class TreeBuilder:
 		self.destination_chain.append(self.destination)
 
 	def insert(self, route):
-		debug(route)
 		root = get_root(route.branch, self.current_route.branch)
 		branch_index = len(root)
 		# _branch starts with root.
@@ -114,7 +113,6 @@ OPENER = 0
 
 
 def make_ending_range(chain, pointer_path, waterline):
-	assert len(chain) == len(pointer_path)
 	ending = []
 	for i in range(len(pointer_path)-1, waterline):
 		parent = chain[i-1]
@@ -176,8 +174,6 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 				opening = make_opening_range(pointer.path, branch_index+1)
 
 			if any((ending, gap, opening)):
-				debug(pointer.index, previous_pointer.path, pointer.path, branch_index+1, ending, gap, opening)
-				print()
 				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
 		previous_pointer = pointer
@@ -210,20 +206,17 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	previous_path = ()
 	for pointer, _ in tape:
 		if pointer.path == previous_path:
+			debug('skip', previous_path)
 			continue
 
-		debug(pointer.index)
 		previous_path = pointer.path
 		if pointer.index in boundaries:
 			boundary = boundaries[pointer.index]
-			debug(boundary)
 			for route in chain(boundary.ending, boundary.gap, boundary.opening):
 				builder.insert(route)
 		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
-		print('')
 
 	boundary = boundaries[pointer.index+1]
-	debug(boundary)
 	for route in chain(boundary.ending, boundary.gap, boundary.opening):
 		builder.insert(route)
 

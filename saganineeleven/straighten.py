@@ -186,15 +186,19 @@ def straighten(
 		elif event == 'end':
 			if element.tag in text_nodes:
 				chunk = elementstr(converter(element))
-				chunk.elements = ShadowElement(
-					path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
-					atom=text_nodes[element.tag],
-					representation_length=len(chunk),
-					offset=0,
-					length=len(chunk),
-					is_constant=True,
-				),
-				lexer.feed(chunk)
+				# XXX: Stub. I found case with text_nodes <r>. It contains <AlternateContent> as content.
+				# XXX: This breaks idea of text_nodes are leaves.
+				if chunk:
+					chunk.elements = ShadowElement(
+						path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
+						atom=text_nodes[element.tag],
+						representation_length=len(chunk),
+						offset=0,
+						length=len(chunk),
+						is_constant=True,
+					),
+					debug(repr(branch), chunk, element.tag)
+					lexer.feed(chunk)
 
 			branch.pop()
 			# XXX: It is stub for ElementTree, unlink children to free memory.
