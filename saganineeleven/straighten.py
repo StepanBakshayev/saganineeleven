@@ -197,7 +197,6 @@ def straighten(
 						length=len(chunk),
 						is_constant=True,
 					),
-					debug(repr(branch), chunk, element.tag)
 					lexer.feed(chunk)
 
 			branch.pop()

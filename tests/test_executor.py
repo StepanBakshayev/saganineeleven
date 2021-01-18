@@ -16,10 +16,14 @@ from saganineeleven.stringify import stringify, parse
 
 fixture_path = Path(__file__).absolute().parent / 'fixture'
 
+
 def test_get_root():
+	assert get_root('abc', 'abc') == 'abc'
 	assert get_root('a', 'b') == ''
 	assert get_root('ac', 'ab') == 'a'
 	assert get_root('0ac143', '0abi[wg') == '0a'
+	assert get_root('', '0abi[wg') == ''
+	assert get_root('0ac143', '') == ''
 
 
 @pytest.mark.skip

@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from operator import itemgetter
@@ -30,7 +31,7 @@ from .straighten import ElementPointer, Path, Line, Index
 
 
 def get_root(a: Sequence, b: Sequence) -> Sequence:
-	index = 0
+	index = -1
 	for index, (i, j) in enumerate(zip(a, b)):
 		if i != j:
 			index -= 1
@@ -204,17 +205,19 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	builder = TreeBuilder(source)
 
 	previous_path = ()
-	for pointer, _ in tape:
+	for pointer, text in tape:
 		if pointer.path == previous_path:
-			debug('skip', previous_path)
 			continue
 
 		previous_path = pointer.path
 		if pointer.index in boundaries:
 			boundary = boundaries[pointer.index]
+			debug(boundary)
 			for route in chain(boundary.ending, boundary.gap, boundary.opening):
 				builder.insert(route)
+		debug(pointer.path, text)
 		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
+		print()
 
 	boundary = boundaries[pointer.index+1]
 	for route in chain(boundary.ending, boundary.gap, boundary.opening):
