@@ -194,13 +194,4 @@ def test_continues(path, lexer, handler):
 		for route in chain(boundary.ending, boundary.gap, boundary.opening):
 			builder.insert(route)
 
-		with (Path().resolve() / f'result-{path.name}').open('wb') as stream:
-			ElementTree(builder.destination).write(stream, xml_declaration=True, encoding='utf-8')
-
-		# assert dataficay(builder.destination, namespaces) == origin_data
-		if dataficay(builder.destination, namespaces) == origin_data:
-			assert True
-		else:
-			debug(line)
-			debug(boundaries)
-			assert False
+		assert dataficay(builder.destination, namespaces) == origin_data
