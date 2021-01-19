@@ -5,22 +5,20 @@ import re
 
 from msgpack import packb, unpackb
 
-from .straighten import elementstr, ElementPointer
+from .straighten import ElementPointer, Line
 from dataclasses import astuple
 
 # surrogates U+DC80 to U+DCFF
 element_re = re.compile(r'\ud800([\U00000000-\U0010ffff]+?)\ud801')
 
-def stringify(text: Sequence[elementstr]) -> str:
+def stringify(line: Line) -> str:
 	buffer = []
-	for chunk in text:
-		offset = 0
-		for element in chunk.elements:
-			buffer.append('\ud800')
-			buffer.append(packb(astuple(element)).decode('utf-8', 'surrogateescape'))
-			buffer.append('\ud801')
-			buffer.append(str.__getitem__(chunk, slice(offset, offset+element.length)))
-			offset += element.length
+	for pointer, text in line:
+		buffer.append('\ud800')
+		buffer.append(packb(astuple(pointer)).decode('utf-8', 'surrogateescape'))
+		buffer.append('\ud801')
+		buffer.append(text)
+
 	return ''.join(buffer)
 
 
