@@ -17,7 +17,6 @@ import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from operator import itemgetter
-from xml.etree import ElementPath
 from xml.etree.ElementTree import ElementTree, parse, Element
 from typing_extensions import Literal
 
@@ -66,7 +65,7 @@ class TreeBuilder:
 	destination: Element = field(init=False)
 	source_chain: List[Element] = field(default_factory=list, init=False)
 	destination_chain: List[Element] = field(default_factory=list, init=False)
-	current_route: Route = field(default_factory=lambda: Route((), ()))
+	current_route: Route = field(default_factory=lambda: Route((), ()), init=False)
 
 	def __post_init__(self):
 		self.source_chain.append(self.source)
@@ -213,122 +212,32 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	return builder
 
 
-# TagIndex = namedtuple('TagIndex', 'namespace name index', module=__name__)
-#
-#
-#
-#
-# def find(source: Element, tag_index: TagIndex) -> Tuple[int, Element]:
-# 	count = 0
-# 	tag = tag_index.name
-# 	if tag_index.namespace:
-# 		tag = f'{{{tag_index.namespace}}}{tag}'
-# 	for index, child in enumerate(source):
-# 		if child.tag == tag:
-# 			if count == tag_index.index:
-# 				return index, child
-# 			count += 1
-# 	raise ValueError(f'{tag_index!r} was not found in {source.tag}. Looked up for {tag!r}.', tag_index, tag, source)
-#
-#
-# def lift_up(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...]):
-# 	for tag_index in reversed(position):
-# 		source.pop()
-# 		destination.pop()
-#
-# 		origin = source[-1]
-# 		position_index, _ = find(origin, tag_index)
-# 		clone = destination[-1]
-# 		for successor in origin[position_index+1:]:
-# 			clone.append(element_deepcopy(successor))
-#
-#
-# def move_forward(source: Deque[Element], destination: Deque[Element], position: TagIndex, target: TagIndex):
-# 	source.pop()
-# 	destination.pop()
-#
-# 	origin = source[-1]
-# 	position_index, _ = find(origin, position)
-# 	target_index, _ = find(origin, target)
-# 	clone = destination[-1]
-# 	for successor in origin[position_index+1:target_index]:
-# 		new = element_deepcopy(successor)
-# 		# XXX: bug here. No one test catches it.
-# 		clone[-1].append(new)
-#
-#
-# def start_target(source: Deque[Element], destination: Deque[Element], target: TagIndex):
-# 	origin = source[-1]
-# 	target_index, target_node = find(origin, target)
-# 	new = element_copy(target_node)
-# 	clone = destination[-1]
-# 	clone.append(new)
-#
-# 	source.append(target_node)
-# 	destination.append(new)
-#
-#
-# def go_down(source: Deque[Element], destination: Deque[Element], target: Tuple[TagIndex, ...]):
-# 	for tag_index in target:
-# 		origin = source[-1]
-# 		target_index, target_node = find(origin, tag_index)
-# 		clone = destination[-1]
-# 		for predecessor in origin[0:target_index]:
-# 			clone.append(element_deepcopy(predecessor))
-# 		new = element_copy(target_node)
-# 		clone.append(new)
-#
-# 		source.append(target_node)
-# 		destination.append(new)
-#
-#
-# def copy(source: Deque[Element], destination: Deque[Element], position: Tuple[TagIndex, ...], target: Tuple[TagIndex, ...]):
-# 	assert source
-# 	assert destination
-# 	assert position
-# 	assert target
-# 	assert len(source) == len(destination) == len(position), (source, destination, position)
-# 	assert position[0] == target[0]
-# 	assert position != target
-#
-# 	root_index = 0
-# 	for root_index, (current_pointer, target_pointer) in enumerate(zip(position, target)):
-# 		if current_pointer != target_pointer:
-# 			root_index -= 1
-# 			break
-#
-# 	branch_index = root_index + 1
-#
-# 	# XXX: I didn't cope with general algorithm. I split handling by simple steps and make script.
-# 	if root_index == 0 and len(target) == 1:
-# 		lift_up(source, destination, position[1:])
-#
-# 	else:
-# 		lift_up(source, destination, position[branch_index+1:])
-#
-# 		if branch_index < len(target):
-# 			if branch_index < len(position):
-# 				move_forward(source, destination, position[branch_index], target[branch_index])
-# 				assert len(source) == len(destination) == (root_index + 1), (source, destination, root_index)
-#
-# 			start_target(source, destination, target[branch_index])
-# 			assert len(source) == len(destination) == (branch_index + 1), (source, destination, branch_index)
-#
-# 			go_down(source, destination, target[branch_index+1:])
-#
-# 	assert len(source) == len(destination) == len(target), (source, destination, target)
-#
-#
-# # XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
-# def append(place: Element, text):
-# 	place.text += text
-#
-#
-# # XXX: This is not so easy in real life. MS Word encode tabs, newlines with special tag.
-# def set(place: Element, text):
-# 	place.text = text
-#
-#
+# Utility function for debug purpose.
+def make_x(root: Element, path: Path) -> List[str]:
+	if path is None:
+		return 'None'
+	parent = root
+	tag = parent.tag
+	count = 0
+	chunks = [f'{tag}[{count}]']
+	for index in path:
+		try:
+			child = parent[index]
+		except IndexError:
+			chunks.append(f'{parent}?{index}')
+			break
+		tag = child.tag
+		count = 0
+		for c in parent:
+			if c.tag == tag:
+				if c == child:
+					break
+				count += 1
+		chunks.append(f'{tag}[{count}]')
+		parent = child
+	return chunks
+
+
 # # plane:
 # # - text
 # # - element
@@ -337,30 +246,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 # # - action
 #
 #
-# # Utility function for debug purpose.
-# def make_x(root: Element, path: ElementPath) -> List[str]:
-# 	if path is None:
-# 		return 'None'
-# 	parent = root
-# 	tag = parent.tag
-# 	count = 0
-# 	chunks = [f'{tag}[{count}]']
-# 	for index in path:
-# 		try:
-# 			child = parent[index]
-# 		except IndexError:
-# 			chunks.append(f'{parent}?{index}')
-# 			break
-# 		tag = child.tag
-# 		count = 0
-# 		for c in parent:
-# 			if c.tag == tag:
-# 				if c == child:
-# 					break
-# 				count += 1
-# 		chunks.append(f'{tag}[{count}]')
-# 		parent = child
-# 	return chunks
 #
 #
 # Operation = Enum('Operation', 'copy set_text', module=__name__)
@@ -388,75 +273,9 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 # 	"""
 # 	This is not decode. It is interpretate or trans-something.
 #
-# 	Model of semantic-less xml of document format.
-# 	<container>
-# 		<opening>
-# 			...
-# 		</opening>
-# 		<element pointer>text</element pointer>
-# 		<element pointer>text</element pointer>
-# 		<element pointer>text</element pointer>
-# 		<ending>
-# 			...
-# 		</ending>
-# 	</container>
 # 	"""
 # 	annotation, plain = tee(tape)
 # 	annotated_tape = zip(map(lambda p0t1: get_operation(p0t1[0], p0t1[1]), annotation), plain)
-#
-# 	# Code below uses variables after for-cycle. Do explicit check to prevent some cryptic errors as NameError or UnboundLocalError.
-# 	head_tape = next(annotated_tape, None)
-# 	if head_tape is None:
-# 		raise ValueError('tape must contain at least one pair of element and text.')
-#
-# 	opening = []
-# 	node = tree_root
-# 	while len(node):
-# 		opening.append(0)
-# 		node = node[0]
-# 	opening = tuple(opening)
-#
-# 	ending = []
-# 	node = tree_root
-# 	while len(node):
-# 		ending.append(len(node)-1)
-# 		node = node[-1]
-# 	ending = tuple(ending)
-#
-# 	borders = deque()
-#
-#
-# 	copy_range_start = None
-# 	operation, (pointer, text) = head_tape
-# 	if operation is ElementOperation.none:
-# 		first_appear = pointer.path
-#
-# 		opening_first_root = get_root(opening, first_appear)
-# 		for operation, (pointer, text) in annotated_tape:
-# 			if operation is not ElementOperation.none:
-# 				break
-# 		if operation is ElementOperation.none:
-# 			raise RuntimeError('Tape is full of empty elements.')
-# 		head_tape = operation, (pointer, text)
-#
-# 		first_present = pointer.path
-# 		present_root = get_root(opening_first_root, first_present)
-# 		if present_root >= opening_first_root:
-# 			stop = present_root
-# 			# The general thing of library is doing simple operation on xml without semantics.
-# 			# Guess container of first absent text chunk by common root of two elements.
-# 			# Hope document format handler recovers from mistakes.
-# 			# I think the issue would be solved by aggregation of xml by semantic blocks in between in straighten.
-# 			family = get_root(first_appear, first_present)
-# 			stop += family[len(stop):]
-# 			if len(first_appear) > len(family) and first_appear[len(family)] != 0:
-# 				stop += first_appear[len(family)]-1,
-# 			assert stop
-#
-# 			yield {Operation.copy: Range(opening, stop)}
-#
-# 	else:
-# 		copy_range_start = opening
 #
 # 	annotated_tape = chain(
 # 		(head_tape,),
@@ -497,25 +316,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 #
 # 		assert previous_position != position, ((make_x(root, previous_position[0]), previous_position), (make_x(root, position[0]), position))
 # 		previous_position = position
-#
-# 	# XXX: mirror trick as for opening. It is decide affiliation of ending as:
-# 	# - part of container of last skipped element
-# 	# - present sibling after container of last skipped element
-# 	# - stop bound of copy range
-# 	if operation is ElementOperation.copy:
-# 		assert copy_range_start
-# 		yield {Operation.copy: Range(copy_range_start, ending)}
-#
-# 	elif operation is ElementOperation.set_text:
-# 		# Ignore case explicitly.
-# 		pass
-#
-# 	elif operation is ElementOperation.none:
-# 		# raise NotImplementedError
-# 		pass
-#
-# 	else:
-# 		raise RuntimeError(f'Unsupported operation {operation}.', operation)
 #
 #
 # def enforce(origin: 'FileLikeObject', tape: Iterator[Tuple[Element, str]], middleware) -> Tuple[ElementTree, list]:
