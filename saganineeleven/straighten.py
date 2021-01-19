@@ -185,10 +185,11 @@ def straighten(
 
 		elif event == 'end':
 			if element.tag in text_nodes:
-				chunk = elementstr(converter(element))
+				text = converter(element)
 				# XXX: Stub. I found case with text_nodes <r>. It contains <AlternateContent> as content.
 				# XXX: This breaks idea of text_nodes are leaves.
-				if chunk:
+				if text:
+					chunk = elementstr(text)
 					chunk.elements = ShadowElement(
 						path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
 						atom=text_nodes[element.tag],

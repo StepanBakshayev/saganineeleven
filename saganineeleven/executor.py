@@ -152,7 +152,7 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 			opening = ()
 
 			root = get_root(previous_pointer.path, pointer.path)
-			assert root < previous_pointer.path < pointer.path
+			assert root < previous_pointer.path < pointer.path, (root, previous_pointer.path, pointer.path)
 			branch_index = len(root)
 
 			if branch_index + 1 < len(previous_pointer.path):
@@ -165,8 +165,6 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 			if branch_index + 1 < len(pointer.path):
 				opening = make_opening_range(pointer.path, branch_index+1)
 
-			debug(pointer)
-			debug(ending, gap, opening)
 			if any((ending, gap, opening)):
 				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
@@ -178,17 +176,13 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 	gap = ()
 
 	first_pointer = line[0][0]
-	ending = ()
+	ending = make_opening_range(first_pointer.path[:branch_index], 0)
 	opening = make_opening_range(first_pointer.path, branch_index)
-	if first_pointer.path[branch_index] != OPENER:
-		ending = Route(common_root, tuple(range(0, first_pointer.path[branch_index]))),
 	registry[first_pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
 	last_pointer = line[-1][0]
 	ending = make_ending_range(previous_route, last_pointer.path, branch_index)
-	opening = ()
-	if last_pointer.path[branch_index] < len(previous_route[branch_index-1]):
-		opening = Route(common_root, tuple(range(last_pointer.path[branch_index]+1, len(previous_route[branch_index-1])))),
+	opening = make_ending_range(previous_route, last_pointer.path[:branch_index+1], 0)
 	registry[last_pointer.index+1] = Boundary(ending=ending, gap=gap, opening=opening)
 
 	return registry

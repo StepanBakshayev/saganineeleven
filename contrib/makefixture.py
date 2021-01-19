@@ -12,19 +12,19 @@ from saganineeleven.contrib import odt, docx
 INDENT = '  '
 
 
-def travel_depth(element, level=0):
-	if element.text or element.tail or not len(element):
+def travel_depth(element, text_nodes, level=0):
+	if element.text or element.tail or not len(element) or element.tag in text_nodes:
 		return
 	element.text = '\n' + INDENT * level
 	for child in element:
-		travel_depth(child, level+1)
+		travel_depth(child, text_nodes, level+1)
 		child.tail = '\n' + INDENT * level
 	child.tail = '\n' + INDENT * (level - 1)
 
 
-def parse_and_format(file):
+def parse_and_format(file, text_nodes):
 	tree = ElementTree(file=file)
-	travel_depth(tree.getroot())
+	travel_depth(tree.getroot(), text_nodes)
 	return tree
 
 
@@ -37,7 +37,7 @@ def main(options):
 		for handler, file_name, content_name in (odt, str(source_path), 'content.xml'), (docx, docx_file.name, 'word/document.xml'):
 			files = handler.iter(file_name)
 			content_file = next(filter(lambda f: f.name == content_name, files))
-			tree = parse_and_format(content_file)
+			tree = parse_and_format(content_file, handler.text_nodes)
 			with (source_path.parent/f'{source_path.stem}.{handler.__name__.split(".")[-1]}.xml').open('wb') as stream:
 				tree.write(stream, xml_declaration=True, encoding='utf-8')
 

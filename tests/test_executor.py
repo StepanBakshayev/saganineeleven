@@ -1,16 +1,20 @@
+import re
 import sys
-from collections import deque
+from collections import deque, namedtuple
 from io import StringIO
+from itertools import chain
 from pathlib import Path
+from typing import Sequence
 
 import pytest
 from devtools import debug
 
 from saganineeleven.contrib.django import Lexer, render
 from saganineeleven.contrib.docx import text_nodes, convert
+from saganineeleven.contrib import docx, odt
 from saganineeleven.executor import get_root, delineate_boundaries, fake_enforce, make_ending_range, get_chain, Route, \
-	make_opening_range
-from xml.etree.ElementTree import parse as xml_parse, ElementTree
+	make_opening_range, TreeBuilder
+from xml.etree.ElementTree import parse as xml_parse, ElementTree, Element
 
 from saganineeleven.straighten import straighten
 from saganineeleven.stringify import stringify, parse
@@ -102,7 +106,7 @@ def test_making_boundaries():
 
 def test_delineate_boundaries():
 	with (fixture_path/'case_03.docx.xml').open('br') as stream:
-		content, line = straighten(stream, Lexer, text_nodes, convert)
+		content, line = straighten(stream, Lexer, docx.text_nodes, docx.convert)
 		assert content is content.template
 		stream.seek(0)
 		origin_tree = xml_parse(stream)
@@ -112,22 +116,91 @@ def test_delineate_boundaries():
 
 		assert set(boundaries.keys()) == {*range(1, 8)}
 
-
-def test_continues():
-	with (fixture_path/'case_03.docx.xml').open('br') as stream:
-		content, line = straighten(stream, Lexer, text_nodes, convert)
+	with (fixture_path/'case_03.odt.xml').open('br') as stream:
+		content, line = straighten(stream, Lexer, odt.text_nodes, odt.convert)
 		assert content is content.template
 		stream.seek(0)
 		origin_tree = xml_parse(stream)
 		origin_root = origin_tree.getroot()
 
 		boundaries = delineate_boundaries(origin_root, line)
-		debug(line, boundaries)
-		builder = fake_enforce(origin_root, line, boundaries)
-		debug(builder)
-		buffer = StringIO()
-		print('')
-		with (Path()/'result.docx.xml').open('bw') as stream:
-			ElementTree(builder.destination).write(stream, encoding='utf-8', xml_declaration=True)
 
-	assert False
+		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)),)
+
+
+ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
+namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<name>.*?)$')
+
+
+def dataficay(element: Element, namespaces: Sequence) -> ElementData:
+	tag = element.tag
+	match = namespace_re.match(tag)
+	if match:
+		namespace, name = match.group('namespace', 'name')
+		if namespace not in namespaces:
+			namespaces.append(namespace)
+		ns = namespaces.index(namespace)
+		tag = f'{{ns{ns}}}{name}'
+
+	attrib = {}
+	for key, value in element.attrib.items():
+		match = namespace_re.match(key)
+		if match:
+			namespace, name = match.group('namespace', 'name')
+			if namespace not in namespaces:
+				namespaces.append(namespace)
+			ns = namespaces.index(namespace)
+			key = f'{{ns{ns}}}{name}'
+		attrib[key] = value
+
+	return ElementData(
+		tag, attrib, element.text, element.tail,
+		tuple(map(lambda e: dataficay(e, namespaces), element._children))
+	)
+
+
+def parametrize_by_path(path):
+	for xml in path.parent.glob(f'{path.stem}*.xml'):
+		file_name, handler_name = xml.stem.split('.')
+		yield pytest.param(xml, Lexer, {'docx': docx, 'odt': odt}[handler_name], id=xml.name)
+
+
+@pytest.mark.parametrize('path,lexer,handler', tuple(*map(parametrize_by_path, fixture_path.glob('*.odt'))))
+def test_continues(path, lexer, handler):
+	with path.open('br') as stream:
+		content, line = straighten(stream, lexer, handler.text_nodes, handler.convert)
+		assert content is content.template
+		stream.seek(0)
+		origin_tree = xml_parse(stream)
+		origin_root = origin_tree.getroot()
+		namespaces = []
+		origin_data = dataficay(origin_root, namespaces)
+		boundaries = delineate_boundaries(origin_root, line)
+
+		builder = TreeBuilder(origin_root)
+		previous_path = ()
+		for pointer, text in line:
+			if pointer.path == previous_path:
+				continue
+
+			previous_path = pointer.path
+			if pointer.index in boundaries:
+				boundary = boundaries[pointer.index]
+				for route in chain(boundary.ending, boundary.gap, boundary.opening):
+					builder.insert(route)
+			builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
+
+		boundary = boundaries[pointer.index+1]
+		for route in chain(boundary.ending, boundary.gap, boundary.opening):
+			builder.insert(route)
+
+		with (Path().resolve() / f'result-{path.name}').open('wb') as stream:
+			ElementTree(builder.destination).write(stream, xml_declaration=True, encoding='utf-8')
+
+		# assert dataficay(builder.destination, namespaces) == origin_data
+		if dataficay(builder.destination, namespaces) == origin_data:
+			assert True
+		else:
+			debug(line)
+			debug(boundaries)
+			assert False
