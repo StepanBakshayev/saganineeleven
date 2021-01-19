@@ -113,13 +113,20 @@ class Boundary:
 OPENER = 0
 
 
+def get_chain(tree_root, path: Path):
+	node = tree_root
+	for index in path:
+		node = node[index]
+		yield node
+
+
 def make_ending_range(chain, pointer_path, waterline):
 	ending = []
-	for i in range(len(pointer_path)-1, waterline):
+	for i in range(len(pointer_path)-1, waterline, -1):
 		parent = chain[i-1]
 		index = pointer_path[i]
 		if index + 1 < len(parent):
-			ending.append(Route(pointer_path[:i], tuple(range(index, len(parent)))))
+			ending.append(Route(pointer_path[:i], tuple(range(index+1, len(parent)))))
 	return tuple(ending)
 
 
@@ -134,23 +141,7 @@ def make_opening_range(pointer_path, waterline):
 
 def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Boundary]:
 	registry = {}
-
-	def skip_constant_sequence(pointers):
-		last_constant = False
-		for pointer in pointers:
-			if last_constant and pointer.is_constant:
-				continue
-			yield pointer
-			last_constant = pointer.is_constant
-
-	pointers = skip_constant_sequence(map(itemgetter(0), line))
-
-	def get_chain(tree_root, path: Iterator[Path]):
-		node = tree_root
-		for index in path:
-			node = node[index]
-			yield node
-
+	pointers = map(itemgetter(0), line)
 	previous_pointer = next(pointers)
 	previous_route = tuple(get_chain(tree_root, previous_pointer.path))
 	common_root = previous_pointer.path
@@ -174,6 +165,8 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 			if branch_index + 1 < len(pointer.path):
 				opening = make_opening_range(pointer.path, branch_index+1)
 
+			debug(pointer)
+			debug(ending, gap, opening)
 			if any((ending, gap, opening)):
 				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
@@ -215,7 +208,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			debug(boundary)
 			for route in chain(boundary.ending, boundary.gap, boundary.opening):
 				builder.insert(route)
-		debug(pointer.path, text)
+		debug(pointer, text)
 		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
 		print()
 

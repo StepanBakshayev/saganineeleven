@@ -8,7 +8,8 @@ from devtools import debug
 
 from saganineeleven.contrib.django import Lexer, render
 from saganineeleven.contrib.docx import text_nodes, convert
-from saganineeleven.executor import get_root, delineate_boundaries, fake_enforce
+from saganineeleven.executor import get_root, delineate_boundaries, fake_enforce, make_ending_range, get_chain, Route, \
+	make_opening_range
 from xml.etree.ElementTree import parse as xml_parse, ElementTree
 
 from saganineeleven.straighten import straighten
@@ -79,10 +80,27 @@ def test_opening_container_copy_none_ending():
 		assert tuple(log) == sample
 
 
-# def test_make_opening_range():
-# 	make_opening_range((0, 1, 2, 1, 1), )
+def test_making_boundaries():
+	with (fixture_path/'case_03.docx.xml').open('br') as stream:
+		origin_tree = xml_parse(stream)
+		origin_root = origin_tree.getroot()
 
-def test_boundaries():
+		previous_path = \
+			(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3, 0, 0, 1)
+		path = \
+			(0, 4, 1, 1, 1, 0, 0, 0, 0, 0, 1)
+		root = get_root(previous_path, path)
+		branch_index = len(root)
+
+		chain = tuple(get_chain(origin_root, previous_path))
+		routes = make_ending_range(chain, previous_path, branch_index+1)
+		assert routes == (Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0), crossroad=(4,)),)
+
+		routes = make_opening_range(path, branch_index+1)
+		assert routes == (Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0, 0), crossroad=(0,)),)
+
+
+def test_delineate_boundaries():
 	with (fixture_path/'case_03.docx.xml').open('br') as stream:
 		content, line = straighten(stream, Lexer, text_nodes, convert)
 		assert content is content.template
@@ -90,8 +108,21 @@ def test_boundaries():
 		origin_tree = xml_parse(stream)
 		origin_root = origin_tree.getroot()
 
-		debug(line)
 		boundaries = delineate_boundaries(origin_root, line)
+
+		assert set(boundaries.keys()) == {*range(1, 8)}
+
+
+def test_continues():
+	with (fixture_path/'case_03.docx.xml').open('br') as stream:
+		content, line = straighten(stream, Lexer, text_nodes, convert)
+		assert content is content.template
+		stream.seek(0)
+		origin_tree = xml_parse(stream)
+		origin_root = origin_tree.getroot()
+
+		boundaries = delineate_boundaries(origin_root, line)
+		debug(line, boundaries)
 		builder = fake_enforce(origin_root, line, boundaries)
 		debug(builder)
 		buffer = StringIO()
