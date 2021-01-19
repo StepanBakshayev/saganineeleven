@@ -1,9 +1,13 @@
 from io import StringIO
 
+import pytest
+
 from saganineeleven.straighten import straighten, ShadowElement, ContentType, ETC
 from saganineeleven.contrib.django import Lexer
 from saganineeleven.contrib.docx import text_nodes, convert
 
+
+@pytest.mark.skip(reason='until make decision about compress in pipeline')
 def test_all_terminals_present():
 	xml = StringIO("""<?xml version="1.0" encoding="UTF-8"?>
 		<w:document xmlns:o="urn:schemas-microsoft-com:office:office"
