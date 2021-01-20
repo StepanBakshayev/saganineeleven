@@ -4,7 +4,7 @@ from collections import deque, namedtuple
 from io import StringIO
 from itertools import chain
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, MutableSequence
 
 import pytest
 from devtools import debug
@@ -31,24 +31,63 @@ def test_get_root():
 	assert get_root('0ac143', '') == ''
 
 
-@pytest.mark.skip
-def test_opening_container_none_copy_ending():
-	sample = (
-		{Operation.copy: Range((0, 0, 0, 0), (0, 0, 0))},  # XXX: optimize this for deep copy of (0, 0, 0).
-		{Operation.copy: Range((0, 0, 2), (0, 1, 5))},
+def parametrize_by_path(path):
+	for xml in path.parent.glob(f'{path.stem}*.xml'):
+		file_name, handler_name = xml.stem.split('.')
+		yield pytest.param(xml, Lexer, {'docx': docx, 'odt': odt}[handler_name], id=xml.name)
+
+
+ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
+namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<name>.*?)$')
+
+
+def dataform(element: Element, namespaces: MutableSequence) -> ElementData:
+	tag = element.tag
+	match = namespace_re.match(tag)
+	if match:
+		namespace, name = match.group('namespace', 'name')
+		if namespace not in namespaces:
+			namespaces.append(namespace)
+		ns = namespaces.index(namespace)
+		tag = f'{{ns{ns}}}{name}'
+
+	attrib = {}
+	for key, value in element.attrib.items():
+		match = namespace_re.match(key)
+		if match:
+			namespace, name = match.group('namespace', 'name')
+			if namespace not in namespaces:
+				namespaces.append(namespace)
+			ns = namespaces.index(namespace)
+			key = f'{{ns{ns}}}{name}'
+		attrib[key] = value
+
+	return ElementData(
+		tag, attrib, element.text, element.tail,
+		tuple(map(lambda e: dataform(e, namespaces), element._children))
 	)
 
-	with (fixture_path/'paragraph_none_copy.docx.xml').open('br') as stream:
-		content, text = straighten(stream, Lexer, text_nodes, convert)
+
+@pytest.mark.parametrize('path,lexer,handler', tuple(parametrize_by_path(fixture_path/'paragraph_discard_copy.odt')))
+def test_paragraph_discard_copy(path, lexer, handler):
+	with path.open('br') as stream:
+		content, line = straighten(stream, lexer, handler.text_nodes, handler.convert)
 		assert content is content.template
-		template = stringify(text)
-		result = render(template, {})
 		stream.seek(0)
 		origin_tree = xml_parse(stream)
 		origin_root = origin_tree.getroot()
-		log = tuple(decode(origin_root, parse(result)))
+		namespaces = []
+		origin_data = dataform(origin_root, namespaces)
+		boundaries = delineate_boundaries(origin_root, line)
 
-		assert log == sample
+		template = stringify(line)
+		tape = list(parse(render(template, {})))
+
+		builder = fake_enforce(origin_root, tape, boundaries)
+		data = dataform(builder.destination, namespaces)
+
+		# debug(tape, data)
+		assert False
 
 
 @pytest.mark.skip
@@ -128,44 +167,7 @@ def test_delineate_boundaries():
 		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)),)
 
 
-ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
-namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<name>.*?)$')
-
-
-def dataficay(element: Element, namespaces: Sequence) -> ElementData:
-	tag = element.tag
-	match = namespace_re.match(tag)
-	if match:
-		namespace, name = match.group('namespace', 'name')
-		if namespace not in namespaces:
-			namespaces.append(namespace)
-		ns = namespaces.index(namespace)
-		tag = f'{{ns{ns}}}{name}'
-
-	attrib = {}
-	for key, value in element.attrib.items():
-		match = namespace_re.match(key)
-		if match:
-			namespace, name = match.group('namespace', 'name')
-			if namespace not in namespaces:
-				namespaces.append(namespace)
-			ns = namespaces.index(namespace)
-			key = f'{{ns{ns}}}{name}'
-		attrib[key] = value
-
-	return ElementData(
-		tag, attrib, element.text, element.tail,
-		tuple(map(lambda e: dataficay(e, namespaces), element._children))
-	)
-
-
-def parametrize_by_path(path):
-	for xml in path.parent.glob(f'{path.stem}*.xml'):
-		file_name, handler_name = xml.stem.split('.')
-		yield pytest.param(xml, Lexer, {'docx': docx, 'odt': odt}[handler_name], id=xml.name)
-
-
-@pytest.mark.parametrize('path,lexer,handler', tuple(*map(parametrize_by_path, fixture_path.glob('*.odt'))))
+@pytest.mark.parametrize('path,lexer,handler', tuple(chain.from_iterable(map(parametrize_by_path, fixture_path.glob('*.odt')))))
 def test_continues(path, lexer, handler):
 	with path.open('br') as stream:
 		content, line = straighten(stream, lexer, handler.text_nodes, handler.convert)
@@ -174,7 +176,7 @@ def test_continues(path, lexer, handler):
 		origin_tree = xml_parse(stream)
 		origin_root = origin_tree.getroot()
 		namespaces = []
-		origin_data = dataficay(origin_root, namespaces)
+		origin_data = dataform(origin_root, namespaces)
 		boundaries = delineate_boundaries(origin_root, line)
 
 		builder = TreeBuilder(origin_root)
@@ -186,12 +188,10 @@ def test_continues(path, lexer, handler):
 			previous_path = pointer.path
 			if pointer.index in boundaries:
 				boundary = boundaries[pointer.index]
-				for route in chain(boundary.ending, boundary.gap, boundary.opening):
-					builder.insert(route)
-			builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
+				builder.copy(boundary.ending+boundary.gap+boundary.opening)
+			builder.copy((Route(pointer.path[:-1], pointer.path[-1:]),))
 
 		boundary = boundaries[pointer.index+1]
-		for route in chain(boundary.ending, boundary.gap, boundary.opening):
-			builder.insert(route)
+		builder.copy(boundary.ending+boundary.gap+boundary.opening)
 
-		assert dataficay(builder.destination, namespaces) == origin_data
+		assert dataform(builder.destination, namespaces) == origin_data

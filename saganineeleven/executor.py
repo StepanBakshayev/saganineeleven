@@ -66,40 +66,44 @@ class TreeBuilder:
 	source_chain: List[Element] = field(default_factory=list, init=False)
 	destination_chain: List[Element] = field(default_factory=list, init=False)
 	current_route: Route = field(default_factory=lambda: Route((), ()), init=False)
+	current_element: Element = field(init=False)
 
 	def __post_init__(self):
 		self.source_chain.append(self.source)
 
 		self.destination = element_selfcopy(self.source)
 		self.destination_chain.append(self.destination)
+		self.current_element = self.destination
 
-	def insert(self, route):
-		root = get_root(route.branch, self.current_route.branch)
-		branch_index = len(root)
-		# _branch starts with root.
-		self.source_chain = self.source_chain[:branch_index + 1]
-		self.destination_chain = self.destination_chain[:branch_index + 1]
+	def copy(self, routes: Iterator[Route]):
+		for route in routes:
+			root = get_root(route.branch, self.current_route.branch)
+			branch_index = len(root)
+			# _branch starts with root.
+			self.source_chain = self.source_chain[:branch_index + 1]
+			self.destination_chain = self.destination_chain[:branch_index + 1]
 
-		for index in route.branch[branch_index:]:
-			# There are many similar names, append, indexing. Use intermediate names for different terms.
+			for index in route.branch[branch_index:]:
+				# There are many similar names, append, indexing. Use intermediate names for different terms.
+				origin_parent = self.source_chain[-1]
+				parent = self.destination_chain[-1]
+
+				origin = origin_parent[index]
+				new = element_selfcopy(origin)
+				parent.append(new)
+
+				self.source_chain.append(origin)
+				self.destination_chain.append(new)
+
 			origin_parent = self.source_chain[-1]
 			parent = self.destination_chain[-1]
+			for index in route.crossroad:
+				origin = origin_parent[index]
+				new = element_deepcopy(origin)
+				parent.append(new)
 
-			origin = origin_parent[index]
-			new = element_selfcopy(origin)
-			parent.append(new)
-
-			self.source_chain.append(origin)
-			self.destination_chain.append(new)
-
-		origin_parent = self.source_chain[-1]
-		parent = self.destination_chain[-1]
-		for index in route.crossroad:
-			origin = origin_parent[index]
-			new = element_deepcopy(origin)
-			parent.append(new)
-
-		self.current_route = route
+			self.current_element = new
+			self.current_route = route
 
 
 @dataclass(frozen=True)
@@ -191,23 +195,47 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	builder = TreeBuilder(source)
 
 	previous_path = ()
+	previous_index = min(boundaries) - 1
+	# boundaries are used to skip holes in tree in climbing up in tree and moving forward on tape.
 	for pointer, text in tape:
-		if pointer.path == previous_path:
+		# discard
+		if not pointer.is_constant and not text:
 			continue
 
-		previous_path = pointer.path
-		if pointer.index in boundaries:
-			boundary = boundaries[pointer.index]
-			debug(boundary)
-			for route in chain(boundary.ending, boundary.gap, boundary.opening):
-				builder.insert(route)
-		debug(pointer, text)
-		builder.insert(Route(pointer.path[:-1], (pointer.path[-1],)))
-		print()
+		# build
+		# XXX: ignore cycles for awhile.
+		if previous_path != pointer.path:
+			# close previous element
+			routes = ()
+			if previous_index + 1 in boundaries:
+				routes += boundaries[previous_index+1].ending
+			# pave route to current element
+			# 1) continue closing
+			# 2) start opening
+			# self prelude
+			if pointer.index in boundaries:
+				routes += boundaries[pointer.index].gap
+				routes += boundaries[pointer.index].opening
+			# copy current
+			routes += Route(pointer.path[:-1], pointer.path[-1:]),
+			builder.copy(routes)
 
-	boundary = boundaries[pointer.index+1]
-	for route in chain(boundary.ending, boundary.gap, boundary.opening):
-		builder.insert(route)
+			previous_path = pointer.path
+			previous_index = pointer.index
+
+		# set text
+		if not pointer.is_constant and text:
+			# XXX: temporary stub, each document handler must provide middleware for management text content.
+			builder.current_element.text += text
+
+	routes = ()
+	if previous_index + 1 in boundaries:
+		routes += boundaries[previous_index+1].ending
+	# 1) continue closing
+	# copy current
+	last_index = max(boundaries)
+	routes += boundaries[last_index].opening
+	builder.copy(routes)
 
 	return builder
 
