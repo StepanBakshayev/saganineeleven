@@ -32,9 +32,11 @@ def test_get_root():
 
 
 def parametrize_by_path(path):
+	mapping = {'docx': docx, 'odt': odt}
 	for xml in path.parent.glob(f'{path.stem}*.xml'):
 		file_name, handler_name = xml.stem.split('.')
-		yield pytest.param(xml, Lexer, {'docx': docx, 'odt': odt}[handler_name], id=xml.name)
+		if handler_name in mapping:
+			yield pytest.param(xml, Lexer, mapping[handler_name], id=xml.name)
 
 
 ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
@@ -70,14 +72,13 @@ def dataform(element: Element, namespaces: MutableSequence) -> ElementData:
 
 @pytest.mark.parametrize('path,lexer,handler', tuple(parametrize_by_path(fixture_path/'paragraph_discard_copy.odt')))
 def test_paragraph_discard_copy(path, lexer, handler):
-	with path.open('br') as stream:
-		content, line = straighten(stream, lexer, handler.text_nodes, handler.convert)
+	with path.open('br') as template_stream, (path.parent / f'{path.stem}-rendered{path.suffix}').open('rb') as paragon_stream:
+		content, line = straighten(template_stream, lexer, handler.text_nodes, handler.convert)
 		assert content is content.template
-		stream.seek(0)
-		origin_tree = xml_parse(stream)
+		template_stream.seek(0)
+		origin_tree = xml_parse(template_stream)
 		origin_root = origin_tree.getroot()
 		namespaces = []
-		origin_data = dataform(origin_root, namespaces)
 		boundaries = delineate_boundaries(origin_root, line)
 
 		template = stringify(line)
@@ -86,8 +87,10 @@ def test_paragraph_discard_copy(path, lexer, handler):
 		builder = fake_enforce(origin_root, tape, boundaries)
 		data = dataform(builder.destination, namespaces)
 
-		# debug(tape, data)
-		assert False
+		debug(tape, data)
+		rendered_root = xml_parse(paragon_stream).getroot()
+
+		assert data == dataform(rendered_root, namespaces)
 
 
 @pytest.mark.skip

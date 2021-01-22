@@ -194,6 +194,25 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary]) -> TreeBuilder:
 	builder = TreeBuilder(source)
 
+	def iterate_boundaries(boundaries, start, stop):
+		for index in range(start, stop):
+			if index in boundaries:
+				yield index, boundaries[index]
+
+	def jump_over(iboundaries):
+		i_up = next(iboundaries, None)
+		if i_up is None:
+			return
+		_, up = i_up
+		while True:
+			i_down = next(iboundaries, None)
+			if i_down is None:
+				yield up.opening, ()
+				return
+			_, down = i_down
+			yield up.opening, down.ending
+			up = down
+
 	previous_path = ()
 	previous_index = min(boundaries) - 1
 	# boundaries are used to skip holes in tree in climbing up in tree and moving forward on tape.
@@ -205,17 +224,42 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		# build
 		# XXX: ignore cycles for awhile.
 		if previous_path != pointer.path:
-			# close previous element
 			routes = ()
-			if previous_index + 1 in boundaries:
-				routes += boundaries[previous_index+1].ending
+
 			# pave route to current element
-			# 1) continue closing
-			# 2) start opening
+			level = previous_path
+			watermark =  get_root(previous_path, pointer.path)
+			index = previous_index
+			closing_boundaries = iterate_boundaries(boundaries, index, pointer.index+1)
+			# debug(routes, level, watermark, index)
+			for index, boundary in closing_boundaries:
+				debug(index, boundary)
+				for route in boundary.ending:
+					if level > route.branch:
+						routes += route
+						level = route.branch
+				if level == watermark:
+					break
+
+			watermark = pointer.path
+			prelude_boundaries = iterate_boundaries(boundaries, index, pointer.index+1)
+			# debug(routes, level, watermark, index)
+			prelude = []
+			for up, down in jump_over(prelude_boundaries):
+				for route in up:
+					if watermark < route.branch:
+						break
+					prelude.append(route)
+				for route in down:
+					while route.branch <= prelude[-1]:
+						prelude.pop()
+			routes += tuple(prelude)
+
 			# self prelude
 			if pointer.index in boundaries:
 				routes += boundaries[pointer.index].gap
 				routes += boundaries[pointer.index].opening
+
 			# copy current
 			routes += Route(pointer.path[:-1], pointer.path[-1:]),
 			builder.copy(routes)
