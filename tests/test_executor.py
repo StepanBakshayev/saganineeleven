@@ -1,6 +1,7 @@
 import re
 import sys
 from collections import deque, namedtuple
+from dataclasses import astuple, dataclass
 from io import StringIO
 from itertools import chain
 from operator import attrgetter
@@ -40,7 +41,15 @@ def parametrize_by_path(path):
 			yield pytest.param(xml, Lexer, mapping[handler_name], id=xml.name)
 
 
-ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
+# ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
+@dataclass(frozen=True)
+class ElementData:
+	tag: str
+	attrib: dict
+	text: str
+	tail: str
+	children: tuple
+
 namespace_re = re.compile(r'^{(?P<namespace>.*?)}(?P<name>.*?)$')
 
 
@@ -139,13 +148,45 @@ def test_objects_display(path, lexer, handler):
 		builder = fake_enforce(origin_root, tape, boundaries)
 		data = dataform(builder.destination, namespaces)
 
-		debug(tape)
 		paragon_root = xml_parse(paragon_stream).getroot()
+		paragon_data = dataform(paragon_root, namespaces)
 
-		if data != dataform(paragon_root, namespaces):
-			with (Path().parent / f'{path.stem}-rendered{path.suffix}').open('bw') as out:
-				ElementTree(builder.destination).write(out, xml_declaration=True, encoding='utf-8')
-		assert data == dataform(paragon_root, namespaces)
+		if data != paragon_data:
+			from pprint import pprint
+			with (Path().parent / f'{path.stem}-paragon.txt').open('bw') as out:
+				pprint(paragon_data, stream=out, width=200)
+			with (Path().parent / f'{path.stem}-data.txt').open('bw') as out:
+				pprint(data, stream=out, width=200)
+		assert data == paragon_data
+
+
+@pytest.mark.parametrize('path,lexer,handler', tuple(parametrize_by_path(fixture_path/'objects_erase.odt')))
+def test_objects_erase(path, lexer, handler):
+	with path.open('br') as template_stream, (path.parent / f'{path.stem}-rendered{path.suffix}').open('rb') as paragon_stream:
+		content, line = straighten(template_stream, lexer, handler.text_nodes, handler.convert)
+		assert content is content.template
+		template_stream.seek(0)
+		origin_tree = xml_parse(template_stream)
+		origin_root = origin_tree.getroot()
+		namespaces = []
+		boundaries = delineate_boundaries(origin_root, line)
+
+		template = stringify(line)
+		tape = list(parse(render(template, {})))
+
+		builder = fake_enforce(origin_root, tape, boundaries)
+		data = dataform(builder.destination, namespaces)
+
+		paragon_root = xml_parse(paragon_stream).getroot()
+		paragon_data = dataform(paragon_root, namespaces)
+
+		if data != paragon_data:
+			from pprint import pprint
+			with (Path().parent / f'{path.stem}-paragon.txt').open('tw') as out:
+				pprint(astuple(paragon_data), stream=out, width=200)
+			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
+				pprint(astuple(data), stream=out, width=200)
+		assert data == paragon_data
 
 
 def test_making_boundaries():

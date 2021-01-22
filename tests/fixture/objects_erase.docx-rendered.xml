@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document xmlns:ns0="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:ns1="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:ns2="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:ns3="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:ns4="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" xmlns:ns5="urn:schemas-microsoft-com:vml" xmlns:ns6="urn:schemas-microsoft-com:office:office" xmlns:ns7="urn:schemas-microsoft-com:office:word" xmlns:ns8="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:ns9="http://schemas.openxmlformats.org/officeDocument/2006/math" ns1:Ignorable="w14 wp14">
+<ns0:body>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:hyperlink ns8:id="rId2">
+      <ns0:r><ns0:rPr /><ns0:t>Hyper text</ns0:t></ns0:r>
+    </ns0:hyperlink>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /></ns0:r>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns9:oMathPara>
+      <ns9:oMathParaPr>
+        <ns9:jc ns9:val="left" />
+      </ns9:oMathParaPr>
+      <ns9:oMath>
+        <ns9:r><ns9:rPr><ns9:lit /><ns9:nor /></ns9:rPr><ns9:t xml:space="preserve">%</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">if</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">show</ns9:t></ns9:r>
+        <ns9:r><ns9:rPr><ns9:lit /><ns9:nor /></ns9:rPr><ns9:t xml:space="preserve">%</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">show</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">formula</ns9:t></ns9:r>
+        <ns9:r><ns9:rPr><ns9:lit /><ns9:nor /></ns9:rPr><ns9:t xml:space="preserve">%</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">endif</ns9:t></ns9:r>
+        <ns9:r><ns9:rPr><ns9:lit /><ns9:nor /></ns9:rPr><ns9:t xml:space="preserve">%</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">+</ns9:t></ns9:r>
+        <ns9:f>
+          <ns9:fPr>
+            <ns9:type ns9:val="lin" />
+          </ns9:fPr>
+          <ns9:num>
+            <ns9:r><ns9:t xml:space="preserve">something</ns9:t></ns9:r>
+          </ns9:num>
+          <ns9:den>
+            <ns9:r><ns9:t xml:space="preserve">10</ns9:t></ns9:r>
+          </ns9:den>
+        </ns9:f>
+        <ns9:r><ns9:t xml:space="preserve">=</ns9:t></ns9:r>
+        <ns9:r><ns9:t xml:space="preserve">2</ns9:t></ns9:r>
+      </ns9:oMath>
+    </ns9:oMathPara>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /></ns0:r>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /></ns0:r>
+    <ns0:r><ns0:br ns0:type="page" /></ns0:r>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Style16" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:spacing ns0:before="0" ns0:after="140" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /></ns0:r>
+  </ns0:p>
+  <ns0:sectPr>
+    <ns0:type ns0:val="nextPage" />
+    <ns0:pgSz ns0:w="11906" ns0:h="16838" />
+    <ns0:pgMar ns0:left="1134" ns0:right="1134" ns0:header="0" ns0:top="1134" ns0:footer="0" ns0:bottom="1134" ns0:gutter="0" />
+    <ns0:pgNumType ns0:fmt="decimal" />
+    <ns0:formProt ns0:val="false" />
+    <ns0:textDirection ns0:val="lrTb" />
+    <ns0:docGrid ns0:type="default" ns0:linePitch="100" ns0:charSpace="0" />
+  </ns0:sectPr>
+</ns0:body>
+</ns0:document>

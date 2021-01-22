@@ -223,19 +223,22 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	last_discard = False
 	# boundaries are used to skip holes in tree in climbing up in tree and moving forward on tape.
 	for pointer, text in tape:
+		debug(pointer, text)
 		# discard
 		if not pointer.is_constant and not text:
 			last_discard = True
+			print('discard')
+			print()
 			continue
 
-		debug(last_discard, pointer, text)
+		debug(last_discard)
 		# build
 		# XXX: ignore cycles for awhile.
 		if previous_path != pointer.path:
 			routes = ()
 			level = previous_path
 
-			debug(previous_index, boundaries)
+			debug(previous_index)
 			next_to_previous_index = previous_index + 1
 			if next_to_previous_index in boundaries:
 				routes += boundaries[next_to_previous_index].ending
@@ -271,7 +274,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 								break
 							prelude.append(route)
 						for route in down:
-							while route.branch <= prelude[-1]:
+							while route.branch <= prelude[-1].branch:
 								prelude.pop()
 					routes += tuple(prelude)
 					debug('prelude', routes)
@@ -286,22 +289,35 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			routes += Route(pointer.path[:-1], pointer.path[-1:]),
 			debug('self', routes)
 			builder.copy(filter(attrgetter('crossroad'), routes))
-			print('---')
+			print('copy')
 
 		# set text
 		if not pointer.is_constant and text:
 			# XXX: temporary stub, each document handler must provide middleware for management text content.
-			for element in builder.current_element:
-				if element.tag.endswith('}t'):
-					break
-			if previous_path != pointer.path:
-				element.text = text
+			current_element = builder.current_element
+			if current_element.tag.endswith('}r'):
+				for element in current_element:
+					if element.tag.endswith('}t'):
+						break
+				if previous_path != pointer.path:
+					element.text = text
+				else:
+					element.text += text
+				debug('run', element.text)
+			elif current_element.tag.endswith('}textpath'):
+				if previous_path != pointer.path:
+					current_element.set('string', text)
+				else:
+					current_element.set('string', current_element.get('string', '')+text)
+				debug('textpath', current_element.attrib)
 			else:
-				element.text += text
+				raise  NotImplementedError(repr(current_element))
+			print('set_text')
 
 		previous_path = pointer.path
 		previous_index = pointer.index
 		last_discard = False
+		print()
 
 	routes = ()
 	if previous_index + 1 in boundaries:
