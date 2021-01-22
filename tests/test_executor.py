@@ -3,6 +3,7 @@ import sys
 from collections import deque, namedtuple
 from io import StringIO
 from itertools import chain
+from operator import attrgetter
 from pathlib import Path
 from typing import Sequence, MutableSequence
 
@@ -161,10 +162,25 @@ def test_making_boundaries():
 
 		chain = tuple(get_chain(origin_root, previous_path))
 		routes = make_ending_range(chain, previous_path, branch_index+1)
-		assert routes == (Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0), crossroad=(4,)),)
+		assert routes == (
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3, 0, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0), crossroad=(4,)),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 0, 0), crossroad=()))
 
 		routes = make_opening_range(path, branch_index+1)
-		assert routes == (Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0, 0), crossroad=(0,)),)
+		assert routes == (
+			Route(branch=(0, 4, 1, 1, 1), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 1, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 1, 0, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0), crossroad=()),
+			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0, 0), crossroad=(0,))
+		)
 
 
 def test_delineate_boundaries():
@@ -188,7 +204,7 @@ def test_delineate_boundaries():
 
 		boundaries = delineate_boundaries(origin_root, line)
 
-		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)),)
+		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)), Route(branch=(3,), crossroad=()))
 
 
 @pytest.mark.parametrize('path,lexer,handler', tuple(chain.from_iterable(map(parametrize_by_path, fixture_path.glob('*.odt')))))
@@ -217,5 +233,9 @@ def test_continues(path, lexer, handler):
 
 		boundary = boundaries[pointer.index+1]
 		builder.copy(boundary.ending+(boundary.gap,)+boundary.opening)
+
+		if dataform(builder.destination, namespaces) != origin_data:
+			with (Path().parent / path.name).open('bw') as out:
+				ElementTree(builder.destination).write(out, xml_declaration=True, encoding='utf-8')
 
 		assert dataform(builder.destination, namespaces) == origin_data
