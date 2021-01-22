@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:ns5="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:ns6="http://openoffice.org/2009/office" xmlns:ns7="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:ns8="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:ns9="http://www.w3.org/1999/xlink" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Symbol" ns2:font-family="Symbol" ns1:font-charset="x-symbol" />
+  <ns1:font-face ns1:name="OpenSymbol1" ns2:font-family="OpenSymbol" ns1:font-adornments="Regular" ns1:font-pitch="variable" ns1:font-charset="x-symbol" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans" ns2:font-family="'Noto Sans'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="OpenSymbol" ns2:font-family="OpenSymbol" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="OpenSymbol2" ns2:font-family="OpenSymbol" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Symbol1" ns2:font-family="Symbol" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="Таблица1" ns1:family="table">
+    <ns1:table-properties ns1:width="17cm" ns3:margin-left="0.004cm" ns3:margin-top="0cm" ns3:margin-bottom="0cm" ns4:align="left" ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A" ns1:family="table-column">
+    <ns1:table-column-properties ns1:column-width="8.5cm" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.1" ns1:family="table-row">
+    <ns1:table-row-properties ns3:keep-together="auto" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A1" ns1:family="table-cell">
+    <ns1:table-cell-properties ns3:padding="0.097cm" ns3:border-left="0.25pt solid #000000" ns3:border-right="none" ns3:border-top="0.25pt solid #000000" ns3:border-bottom="0.25pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.B1" ns1:family="table-cell">
+    <ns1:table-cell-properties ns3:padding="0.097cm" ns3:border="0.25pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A2" ns1:family="table-cell">
+    <ns1:table-cell-properties ns3:padding="0.097cm" ns3:border-left="0.25pt solid #000000" ns3:border-right="none" ns3:border-top="none" ns3:border-bottom="0.25pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.B2" ns1:family="table-cell">
+    <ns1:table-cell-properties ns3:padding="0.097cm" ns3:border-left="0.25pt solid #000000" ns3:border-right="0.25pt solid #000000" ns3:border-top="none" ns3:border-bottom="0.25pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Text_20_body">
+    <ns1:paragraph-properties ns3:text-align="start" ns1:justify-single-word="false" ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="P2" ns1:family="paragraph" ns1:parent-style-name="Frame_20_contents">
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="P3" ns1:family="paragraph" ns1:parent-style-name="Horizontal_20_Line">
+    <ns1:paragraph-properties ns3:margin-top="0cm" ns3:margin-bottom="0.499cm" ns1:contextual-spacing="false" ns3:text-align="start" ns1:justify-single-word="false" ns1:border-line-width-bottom="0.009cm 0.009cm 0.009cm" ns3:padding="0cm" ns3:border-left="none" ns3:border-right="none" ns3:border-top="none" ns3:border-bottom="0.74pt double #808080" ns5:number-lines="false" ns5:line-number="0" ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="P4" ns1:family="paragraph" ns1:parent-style-name="Text_20_body">
+    <ns1:paragraph-properties ns3:margin-top="0cm" ns3:margin-bottom="0.247cm" ns1:contextual-spacing="false" ns3:text-align="start" ns1:justify-single-word="false" ns3:break-before="page" ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="P5" ns1:family="paragraph" ns1:parent-style-name="Frame_20_contents">
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="P6" ns1:family="paragraph" ns1:parent-style-name="Heading_20_1">
+    <ns1:text-properties ns6:rsid="001ab57f" ns6:paragraph-rsid="001ab57f" />
+  </ns1:style>
+  <ns1:style ns1:name="P7" ns1:family="paragraph" ns1:parent-style-name="Standard" ns1:list-style-name="WWNum2" />
+  <ns1:style ns1:name="P8" ns1:family="paragraph">
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+    <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" />
+  </ns1:style>
+  <ns1:style ns1:name="P9" ns1:family="paragraph">
+    <ns7:graphic-properties ns8:fill="solid" ns8:fill-color="#ffffff" />
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+    <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" />
+  </ns1:style>
+  <ns1:style ns1:name="P10" ns1:family="paragraph">
+    <ns7:graphic-properties ns8:fill="none" />
+    <ns1:paragraph-properties ns3:text-align="start" />
+    <ns1:text-properties ns3:color="#000000" ns7:opacity="100%" ns3:font-size="18pt" />
+  </ns1:style>
+  <ns1:style ns1:name="P11" ns1:family="paragraph">
+    <ns7:graphic-properties ns8:fill="solid" ns8:fill-color="#729fcf" />
+    <ns1:paragraph-properties ns3:text-align="start" />
+    <ns1:text-properties ns3:color="#000000" ns7:opacity="100%" ns3:font-size="18pt" />
+  </ns1:style>
+  <ns1:style ns1:name="T1" ns1:family="text">
+    <ns1:text-properties ns3:color="#000000" ns7:opacity="100%" />
+  </ns1:style>
+  <ns1:style ns1:name="T2" ns1:family="text">
+    <ns1:text-properties ns6:rsid="0016c988" />
+  </ns1:style>
+  <ns1:style ns1:name="T3" ns1:family="text">
+    <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" />
+  </ns1:style>
+  <ns1:style ns1:name="T4" ns1:family="text">
+    <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" ns1:language-asian="zh" ns1:country-asian="CN" />
+  </ns1:style>
+  <ns1:style ns1:name="fr1" ns1:family="graphic" ns1:parent-style-name="Formula">
+    <ns1:graphic-properties ns3:margin-left="0cm" ns3:margin-right="0cm" ns3:margin-top="0cm" ns3:margin-bottom="0cm" ns1:vertical-pos="middle" ns1:vertical-rel="text" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph-content" ns8:ole-draw-aspect="1" />
+  </ns1:style>
+  <ns1:style ns1:name="gr1" ns1:family="graphic">
+    <ns1:graphic-properties ns8:stroke="solid" ns2:stroke-width="0.053cm" ns2:stroke-color="#808080" ns8:stroke-linejoin="miter" ns2:stroke-linecap="butt" ns8:fill="solid" ns8:fill-color="#ffffff" ns8:textarea-vertical-align="middle" ns8:auto-grow-height="false" ns8:auto-grow-width="false" ns3:min-height="1.042cm" ns3:min-width="16.713cm" ns3:padding-top="0.026cm" ns3:padding-bottom="0.026cm" ns3:padding-left="0.026cm" ns3:padding-right="0.026cm" ns3:margin-left="0.318cm" ns3:margin-right="0.318cm" ns3:margin-top="0cm" ns3:margin-bottom="0cm" ns1:run-through="foreground" ns1:wrap="run-through" ns1:number-wrapped-paragraphs="no-limit" ns1:vertical-pos="from-top" ns1:vertical-rel="paragraph" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph" ns8:wrap-influence-on-position="once-concurrent" ns7:allow-overlap="true" ns1:flow-with-text="false" />
+    <ns1:paragraph-properties ns1:writing-mode="lr-tb" />
+  </ns1:style>
+  <ns1:style ns1:name="gr2" ns1:family="graphic" ns1:parent-style-name="Frame">
+    <ns1:graphic-properties ns8:stroke="none" ns2:stroke-width="0cm" ns8:fill="none" ns8:textarea-vertical-align="top" ns8:auto-grow-height="false" ns3:min-height="0.919cm" ns3:min-width="5.417cm" ns3:padding-top="0cm" ns3:padding-bottom="0cm" ns3:padding-left="0cm" ns3:padding-right="0cm" ns3:wrap-option="wrap" ns3:margin-left="0cm" ns3:margin-right="0cm" ns3:margin-top="0cm" ns3:margin-bottom="0cm" ns1:run-through="foreground" ns1:wrap="run-through" ns1:number-wrapped-paragraphs="no-limit" ns1:vertical-pos="from-top" ns1:vertical-rel="paragraph" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph" ns8:wrap-influence-on-position="once-concurrent" ns7:allow-overlap="true" ns1:flow-with-text="false" />
+  </ns1:style>
+  <ns1:style ns1:name="gr3" ns1:family="graphic" ns1:parent-style-name="Frame">
+    <ns1:graphic-properties ns8:stroke="solid" ns2:stroke-width="0cm" ns2:stroke-color="#3465a4" ns8:fill="solid" ns8:fill-color="#729fcf" ns8:textarea-vertical-align="middle" ns8:auto-grow-height="false" ns3:min-height="2.219cm" ns3:min-width="10.638cm" ns3:padding-top="0cm" ns3:padding-bottom="0cm" ns3:padding-left="0cm" ns3:padding-right="0cm" ns3:wrap-option="wrap" ns3:margin-left="0cm" ns3:margin-right="0cm" ns3:margin-top="0cm" ns3:margin-bottom="0cm" ns1:run-through="foreground" ns1:wrap="run-through" ns1:number-wrapped-paragraphs="no-limit" ns1:vertical-pos="from-top" ns1:vertical-rel="paragraph" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph" ns8:wrap-influence-on-position="once-concurrent" ns7:allow-overlap="true" ns1:flow-with-text="false" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text ns5:use-soft-page-breaks="true">
+    <ns5:sequence-decls>
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Illustration" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Table" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Text" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Drawing" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Figure" />
+    </ns5:sequence-decls>
+    <ns5:p ns5:style-name="Standard">{% if True %}{{ True }}Paragraph{% endif %}</ns5:p>
+    <ns4:table ns4:name="Таблица1" ns4:style-name="Таблица1">
+      <ns4:table-column ns4:style-name="Таблица1.A" ns4:number-columns-repeated="2" />
+      <ns4:table-row ns4:style-name="Таблица1.1">
+        <ns4:table-cell ns4:style-name="Таблица1.A1" ns0:value-type="string">
+          <ns5:p ns5:style-name="Table_20_Contents">{% if True %}{{ True }}Cell A1{% endif %}</ns5:p>
+        </ns4:table-cell>
+        <ns4:table-cell ns4:style-name="Таблица1.B1" ns0:value-type="string">
+          <ns5:p ns5:style-name="Table_20_Contents">{% if True %}{{ True }}Cell A2{% endif %}</ns5:p>
+        </ns4:table-cell>
+      </ns4:table-row>
+      <ns4:table-row ns4:style-name="Таблица1.1">
+        <ns4:table-cell ns4:style-name="Таблица1.A2" ns0:value-type="string">
+          <ns5:p ns5:style-name="Table_20_Contents">{% if True %}{{ True }}Cell B1{% endif %}</ns5:p>
+        </ns4:table-cell>
+        <ns4:table-cell ns4:style-name="Таблица1.B2" ns0:value-type="string">
+          <ns5:p ns5:style-name="Table_20_Contents">{% if True %}{{ True }}Cell B2{% endif %}</ns5:p>
+        </ns4:table-cell>
+      </ns4:table-row>
+    </ns4:table>
+    <ns5:list xml:id="list2917539156" ns5:style-name="WWNum2">
+      <ns5:list-item>
+        <ns5:p ns5:style-name="P7">{% if True %}{{ True }}List item{% endif %}</ns5:p>
+      </ns5:list-item>
+    </ns5:list>
+    <ns5:p ns5:style-name="P3"><ns8:custom-shape ns5:anchor-type="paragraph" ns8:z-index="0" ns8:name="Фигура1" ns8:style-name="gr3" ns8:text-style-name="P11" ns2:width="10.637cm" ns2:height="2.218cm" ns2:x="6.167cm" ns2:y="0.183cm"><ns5:p ns5:style-name="P2">{% if True %}{{ True }}Shape{% endif %}</ns5:p><ns8:enhanced-geometry ns8:mirror-horizontal="false" ns8:mirror-vertical="false" ns2:viewBox="0 0 0 0" ns8:text-areas="0 0 ?f3 ?f2" ns8:type="ooxml-rect" ns8:enhanced-path="M 0 0 L ?f3 0 ?f3 ?f2 0 ?f2 Z N"><ns8:equation ns8:name="f0" ns8:formula="logwidth/2" /><ns8:equation ns8:name="f1" ns8:formula="logheight/2" /><ns8:equation ns8:name="f2" ns8:formula="logheight" /><ns8:equation ns8:name="f3" ns8:formula="logwidth" /></ns8:enhanced-geometry></ns8:custom-shape></ns5:p>
+    <ns5:p ns5:style-name="P1"><ns5:a ns9:type="simple" ns9:href="https://duckduckgo.com/" ns5:style-name="Standard" ns5:visited-style-name="Standard">Hyper text</ns5:a></ns5:p>
+    <ns5:p ns5:style-name="P1" />
+    <ns5:p ns5:style-name="P1"><ns8:custom-shape ns5:anchor-type="paragraph" ns8:z-index="1" ns8:name="Фигура2" ns8:style-name="gr2" ns8:text-style-name="P10" ns2:width="5.416cm" ns2:height="0.918cm" ns2:x="0.106cm" ns2:y="0.392cm"><ns5:p ns5:style-name="P2"><ns5:span ns5:style-name="T1">{% if True %}{{ True }}Text field{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns8:mirror-horizontal="false" ns8:mirror-vertical="false" ns2:viewBox="0 0 0 0" ns8:text-areas="0 0 ?f3 ?f2" ns8:type="ooxml-rect" ns8:enhanced-path="M 0 0 L ?f3 0 ?f3 ?f2 0 ?f2 Z N"><ns8:equation ns8:name="f0" ns8:formula="logwidth/2" /><ns8:equation ns8:name="f1" ns8:formula="logheight/2" /><ns8:equation ns8:name="f2" ns8:formula="logheight" /><ns8:equation ns8:name="f3" ns8:formula="logwidth" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:custom-shape ns5:anchor-type="char" ns8:z-index="2" ns8:name="Фигура3" ns8:style-name="gr1" ns8:text-style-name="P9" ns2:width="16.765cm" ns2:height="1.094cm" ns2:x="0.178cm" ns2:y="4.362cm"><ns5:p ns5:style-name="P8"><ns5:span ns5:style-name="T3">{% if </ns5:span><ns5:span ns5:style-name="T4">True</ns5:span><ns5:span ns5:style-name="T3"> %}{{ </ns5:span><ns5:span ns5:style-name="T4">True</ns5:span><ns5:span ns5:style-name="T3"> }}Text effect{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns2:viewBox="0 0 21600 21600" ns8:text-areas="0 0 21600 21600" ns8:text-path="true" ns8:text-path-mode="shape" ns8:text-path-scale="path" ns8:text-path-same-letter-heights="false" ns8:type="fontwork-plain-text" ns8:modifiers="10800" ns8:enhanced-path="M ?f3 0 L ?f5 0 N M ?f6 21600 L ?f7 21600 N"><ns8:equation ns8:name="f0" ns8:formula="$0 -10800" /><ns8:equation ns8:name="f1" ns8:formula="?f0 *2" /><ns8:equation ns8:name="f2" ns8:formula="abs(?f1 )" /><ns8:equation ns8:name="f3" ns8:formula="if(?f1 ,0,?f2 )" /><ns8:equation ns8:name="f4" ns8:formula="21600-?f2 " /><ns8:equation ns8:name="f5" ns8:formula="if(?f1 ,?f4 ,21600)" /><ns8:equation ns8:name="f6" ns8:formula="if(?f1 ,?f2 ,0)" /><ns8:equation ns8:name="f7" ns8:formula="if(?f1 ,21600,?f4 )" /><ns8:handle ns8:handle-position="$0 21600" ns8:handle-range-x-minimum="6629" ns8:handle-range-x-maximum="14971" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:frame ns8:style-name="fr1" ns8:name="1" ns5:anchor-type="as-char" ns2:width="9.419cm" ns2:height="0.467cm" ns8:z-index="5"><ns8:object ns9:href="./Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /><ns8:image ns9:href="./ObjectReplacements/Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /></ns8:frame></ns5:p>
+    <ns5:p ns5:style-name="P1" />
+    <ns5:p ns5:style-name="Text_20_body">{% if True %}</ns5:p>
+    <ns5:h ns5:style-name="P6" ns5:outline-level="1">{{ True }} Header</ns5:h>
+    <ns5:p ns5:style-name="P1">{% endif %}</ns5:p>
+    <ns5:p ns5:style-name="P1" />
+    <ns5:p ns5:style-name="P4" />
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>

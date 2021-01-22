@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="http://openoffice.org/2009/office" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns5="urn:oasis:names:tc:opendocument:xmlns:text:1.0" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Lohit Devanagari1" ns2:font-family="'Lohit Devanagari'" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="swiss" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Standard">
+    <ns1:text-properties ns3:rsid="0006bf8c" ns3:paragraph-rsid="0008eabd" />
+  </ns1:style>
+  <ns1:style ns1:name="T1" ns1:family="text">
+    <ns1:text-properties ns4:font-weight="bold" ns1:font-weight-asian="bold" ns1:font-weight-complex="bold" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text>
+    <ns5:sequence-decls>
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Illustration" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Table" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Text" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Drawing" />
+      <ns5:sequence-decl ns5:display-outline-level="0" ns5:name="Figure" />
+    </ns5:sequence-decls>
+    <ns5:p ns5:style-name="P1"><ns5:s />of mice and man <ns5:span ns5:style-name="T1">{{ master_01 }}</ns5:span></ns5:p>
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>
