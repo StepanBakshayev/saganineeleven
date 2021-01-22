@@ -50,7 +50,7 @@ def convert(element: Element) -> str:
 	if element.tag == f'{{{V}}}textpath':
 		return element.get('string')
 	elif element.tag not in {f'{{{W}}}r', f'{{{M}}}r'}:
-		raise RuntimeError(f'Unsupported element {element.tag}.', element)
+		raise RuntimeError(f'Unsupported element {element.tag}. Supported {set(text_nodes)}.', element, set(text_nodes))
 	chunks = []
 	for child in element:
 		if child.tag.endswith('}t'):

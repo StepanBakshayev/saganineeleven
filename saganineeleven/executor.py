@@ -167,7 +167,7 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 			if branch_index + 1 < len(previous_pointer.path):
 				ending = make_ending_range(previous_route, previous_pointer.path, branch_index+1)
 
-			if previous_pointer.path[branch_index]+1 < pointer.path[branch_index]-1:
+			if previous_pointer.path[branch_index]+1 < pointer.path[branch_index]:
 				gap = replace(gap, crossroad=tuple(range(previous_pointer.path[branch_index]+1, pointer.path[branch_index])))
 
 			if branch_index + 1 < len(pointer.path):

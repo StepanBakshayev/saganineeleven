@@ -45,6 +45,6 @@ text_nodes = {
 
 def convert(element: Element) -> str:
 	if element.tag not in text_nodes:
-		raise RuntimeError(f'Unsupported element {element.tag}.', element)
+		raise RuntimeError(f'Unsupported element {element.tag}. Supported {set(text_nodes)}.', element, set(text_nodes))
 
 	return ''.join(element.itertext())

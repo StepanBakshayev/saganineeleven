@@ -206,6 +206,17 @@ def test_delineate_boundaries():
 
 		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)), Route(branch=(3,), crossroad=()))
 
+	with (fixture_path/'objects_display.docx.xml').open('br') as stream:
+		content, line = straighten(stream, Lexer, docx.text_nodes, docx.convert)
+		assert content is content.template
+		stream.seek(0)
+		origin_tree = xml_parse(stream)
+		origin_root = origin_tree.getroot()
+
+		boundaries = delineate_boundaries(origin_root, line)
+
+		assert boundaries[10].gap == Route(branch=(0,), crossroad=(5,))
+
 
 @pytest.mark.parametrize('path,lexer,handler', tuple(chain.from_iterable(map(parametrize_by_path, fixture_path.glob('*.odt')))))
 def test_continues(path, lexer, handler):
@@ -225,11 +236,12 @@ def test_continues(path, lexer, handler):
 			if pointer.path == previous_path:
 				continue
 
-			previous_path = pointer.path
 			if pointer.index in boundaries:
 				boundary = boundaries[pointer.index]
 				builder.copy(boundary.ending+(boundary.gap,)+boundary.opening)
 			builder.copy((Route(pointer.path[:-1], pointer.path[-1:]),))
+
+			previous_path = pointer.path
 
 		boundary = boundaries[pointer.index+1]
 		builder.copy(boundary.ending+(boundary.gap,)+boundary.opening)
