@@ -78,12 +78,9 @@
     <ns1:text-properties ns3:color="#000000" ns7:opacity="100%" />
   </ns1:style>
   <ns1:style ns1:name="T2" ns1:family="text">
-    <ns1:text-properties ns6:rsid="0016c988" />
-  </ns1:style>
-  <ns1:style ns1:name="T3" ns1:family="text">
     <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" />
   </ns1:style>
-  <ns1:style ns1:name="T4" ns1:family="text">
+  <ns1:style ns1:name="T3" ns1:family="text">
     <ns1:text-properties ns1:font-name="Noto Sans" ns3:font-size="24pt" ns1:language-asian="zh" ns1:country-asian="CN" />
   </ns1:style>
   <ns1:style ns1:name="fr1" ns1:family="graphic" ns1:parent-style-name="Formula">
@@ -129,7 +126,7 @@
         </ns4:table-cell>
       </ns4:table-row>
     </ns4:table>
-    <ns5:list xml:id="list2917539156" ns5:style-name="WWNum2">
+    <ns5:list xml:id="list3390575964" ns5:style-name="WWNum2">
       <ns5:list-item>
         <ns5:p ns5:style-name="P7">{% if True %}{{ True }}List item{% endif %}</ns5:p>
       </ns5:list-item>
@@ -137,12 +134,9 @@
     <ns5:p ns5:style-name="P3"><ns8:custom-shape ns5:anchor-type="paragraph" ns8:z-index="0" ns8:name="Фигура1" ns8:style-name="gr3" ns8:text-style-name="P11" ns2:width="10.637cm" ns2:height="2.218cm" ns2:x="6.167cm" ns2:y="0.183cm"><ns5:p ns5:style-name="P2">{% if True %}{{ True }}Shape{% endif %}</ns5:p><ns8:enhanced-geometry ns8:mirror-horizontal="false" ns8:mirror-vertical="false" ns2:viewBox="0 0 0 0" ns8:text-areas="0 0 ?f3 ?f2" ns8:type="ooxml-rect" ns8:enhanced-path="M 0 0 L ?f3 0 ?f3 ?f2 0 ?f2 Z N"><ns8:equation ns8:name="f0" ns8:formula="logwidth/2" /><ns8:equation ns8:name="f1" ns8:formula="logheight/2" /><ns8:equation ns8:name="f2" ns8:formula="logheight" /><ns8:equation ns8:name="f3" ns8:formula="logwidth" /></ns8:enhanced-geometry></ns8:custom-shape></ns5:p>
     <ns5:p ns5:style-name="P1"><ns5:a ns9:type="simple" ns9:href="https://duckduckgo.com/" ns5:style-name="Standard" ns5:visited-style-name="Standard">Hyper text</ns5:a></ns5:p>
     <ns5:p ns5:style-name="P1" />
-    <ns5:p ns5:style-name="P1"><ns8:custom-shape ns5:anchor-type="paragraph" ns8:z-index="1" ns8:name="Фигура2" ns8:style-name="gr2" ns8:text-style-name="P10" ns2:width="5.416cm" ns2:height="0.918cm" ns2:x="0.106cm" ns2:y="0.392cm"><ns5:p ns5:style-name="P2"><ns5:span ns5:style-name="T1">{% if True %}{{ True }}Text field{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns8:mirror-horizontal="false" ns8:mirror-vertical="false" ns2:viewBox="0 0 0 0" ns8:text-areas="0 0 ?f3 ?f2" ns8:type="ooxml-rect" ns8:enhanced-path="M 0 0 L ?f3 0 ?f3 ?f2 0 ?f2 Z N"><ns8:equation ns8:name="f0" ns8:formula="logwidth/2" /><ns8:equation ns8:name="f1" ns8:formula="logheight/2" /><ns8:equation ns8:name="f2" ns8:formula="logheight" /><ns8:equation ns8:name="f3" ns8:formula="logwidth" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:custom-shape ns5:anchor-type="char" ns8:z-index="2" ns8:name="Фигура3" ns8:style-name="gr1" ns8:text-style-name="P9" ns2:width="16.765cm" ns2:height="1.094cm" ns2:x="0.178cm" ns2:y="4.362cm"><ns5:p ns5:style-name="P8"><ns5:span ns5:style-name="T3">{% if </ns5:span><ns5:span ns5:style-name="T4">True</ns5:span><ns5:span ns5:style-name="T3"> %}{{ </ns5:span><ns5:span ns5:style-name="T4">True</ns5:span><ns5:span ns5:style-name="T3"> }}Text effect{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns2:viewBox="0 0 21600 21600" ns8:text-areas="0 0 21600 21600" ns8:text-path="true" ns8:text-path-mode="shape" ns8:text-path-scale="path" ns8:text-path-same-letter-heights="false" ns8:type="fontwork-plain-text" ns8:modifiers="10800" ns8:enhanced-path="M ?f3 0 L ?f5 0 N M ?f6 21600 L ?f7 21600 N"><ns8:equation ns8:name="f0" ns8:formula="$0 -10800" /><ns8:equation ns8:name="f1" ns8:formula="?f0 *2" /><ns8:equation ns8:name="f2" ns8:formula="abs(?f1 )" /><ns8:equation ns8:name="f3" ns8:formula="if(?f1 ,0,?f2 )" /><ns8:equation ns8:name="f4" ns8:formula="21600-?f2 " /><ns8:equation ns8:name="f5" ns8:formula="if(?f1 ,?f4 ,21600)" /><ns8:equation ns8:name="f6" ns8:formula="if(?f1 ,?f2 ,0)" /><ns8:equation ns8:name="f7" ns8:formula="if(?f1 ,21600,?f4 )" /><ns8:handle ns8:handle-position="$0 21600" ns8:handle-range-x-minimum="6629" ns8:handle-range-x-maximum="14971" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:frame ns8:style-name="fr1" ns8:name="1" ns5:anchor-type="as-char" ns2:width="9.419cm" ns2:height="0.467cm" ns8:z-index="5"><ns8:object ns9:href="./Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /><ns8:image ns9:href="./ObjectReplacements/Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /></ns8:frame></ns5:p>
+    <ns5:p ns5:style-name="P1"><ns8:custom-shape ns5:anchor-type="paragraph" ns8:z-index="1" ns8:name="Фигура2" ns8:style-name="gr2" ns8:text-style-name="P10" ns2:width="5.416cm" ns2:height="0.918cm" ns2:x="0.106cm" ns2:y="0.392cm"><ns5:p ns5:style-name="P2"><ns5:span ns5:style-name="T1">{% if True %}{{ True }}Text field{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns8:mirror-horizontal="false" ns8:mirror-vertical="false" ns2:viewBox="0 0 0 0" ns8:text-areas="0 0 ?f3 ?f2" ns8:type="ooxml-rect" ns8:enhanced-path="M 0 0 L ?f3 0 ?f3 ?f2 0 ?f2 Z N"><ns8:equation ns8:name="f0" ns8:formula="logwidth/2" /><ns8:equation ns8:name="f1" ns8:formula="logheight/2" /><ns8:equation ns8:name="f2" ns8:formula="logheight" /><ns8:equation ns8:name="f3" ns8:formula="logwidth" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:custom-shape ns5:anchor-type="char" ns8:z-index="2" ns8:name="Фигура3" ns8:style-name="gr1" ns8:text-style-name="P9" ns2:width="16.765cm" ns2:height="1.094cm" ns2:x="0.178cm" ns2:y="4.362cm"><ns5:p ns5:style-name="P8"><ns5:span ns5:style-name="T2">{% if </ns5:span><ns5:span ns5:style-name="T3">True</ns5:span><ns5:span ns5:style-name="T2"> %}{{ </ns5:span><ns5:span ns5:style-name="T3">True</ns5:span><ns5:span ns5:style-name="T2"> }}Text effect{% endif %}</ns5:span></ns5:p><ns8:enhanced-geometry ns2:viewBox="0 0 21600 21600" ns8:text-areas="0 0 21600 21600" ns8:text-path="true" ns8:text-path-mode="shape" ns8:text-path-scale="path" ns8:text-path-same-letter-heights="false" ns8:type="fontwork-plain-text" ns8:modifiers="10800" ns8:enhanced-path="M ?f3 0 L ?f5 0 N M ?f6 21600 L ?f7 21600 N"><ns8:equation ns8:name="f0" ns8:formula="$0 -10800" /><ns8:equation ns8:name="f1" ns8:formula="?f0 *2" /><ns8:equation ns8:name="f2" ns8:formula="abs(?f1 )" /><ns8:equation ns8:name="f3" ns8:formula="if(?f1 ,0,?f2 )" /><ns8:equation ns8:name="f4" ns8:formula="21600-?f2 " /><ns8:equation ns8:name="f5" ns8:formula="if(?f1 ,?f4 ,21600)" /><ns8:equation ns8:name="f6" ns8:formula="if(?f1 ,?f2 ,0)" /><ns8:equation ns8:name="f7" ns8:formula="if(?f1 ,21600,?f4 )" /><ns8:handle ns8:handle-position="$0 21600" ns8:handle-range-x-minimum="6629" ns8:handle-range-x-maximum="14971" /></ns8:enhanced-geometry></ns8:custom-shape><ns8:frame ns8:style-name="fr1" ns8:name="1" ns5:anchor-type="as-char" ns2:width="9.419cm" ns2:height="0.467cm" ns8:z-index="5"><ns8:object ns9:href="./Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /><ns8:image ns9:href="./ObjectReplacements/Object 1" ns9:type="simple" ns9:show="embed" ns9:actuate="onLoad" /></ns8:frame></ns5:p>
     <ns5:p ns5:style-name="P1" />
-    <ns5:p ns5:style-name="Text_20_body">{% if True %}</ns5:p>
-    <ns5:h ns5:style-name="P6" ns5:outline-level="1">{{ True }} Header</ns5:h>
-    <ns5:p ns5:style-name="P1">{% endif %}</ns5:p>
-    <ns5:p ns5:style-name="P1" />
+    <ns5:p ns5:style-name="Text_20_body" />
     <ns5:p ns5:style-name="P4" />
   </ns0:text>
 </ns0:body>

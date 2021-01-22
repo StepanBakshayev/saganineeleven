@@ -198,31 +198,6 @@
       <ns0:pStyle ns0:val="Style16" />
       <ns0:rPr />
     </ns0:pPr>
-    <ns0:r><ns0:rPr /><ns0:t>{% if True %}</ns0:t></ns0:r>
-  </ns0:p>
-  <ns0:p>
-    <ns0:pPr>
-      <ns0:pStyle ns0:val="1" />
-      <ns0:rPr />
-    </ns0:pPr>
-    <ns0:r><ns0:rPr /><ns0:t>{{ True }} Header</ns0:t></ns0:r>
-  </ns0:p>
-  <ns0:p>
-    <ns0:pPr>
-      <ns0:pStyle ns0:val="Style16" />
-      <ns0:bidi ns0:val="0" />
-      <ns0:jc ns0:val="start" />
-      <ns0:rPr />
-    </ns0:pPr>
-    <ns0:r><ns0:rPr /><ns0:t>{% endif %}</ns0:t></ns0:r>
-  </ns0:p>
-  <ns0:p>
-    <ns0:pPr>
-      <ns0:pStyle ns0:val="Style16" />
-      <ns0:bidi ns0:val="0" />
-      <ns0:jc ns0:val="start" />
-      <ns0:rPr />
-    </ns0:pPr>
     <ns0:r><ns0:rPr /></ns0:r>
     <ns0:r><ns0:br ns0:type="page" /></ns0:r>
   </ns0:p>
