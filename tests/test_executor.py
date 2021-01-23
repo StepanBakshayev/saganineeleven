@@ -154,9 +154,9 @@ def test_objects_display(path, lexer, handler):
 		if data != paragon_data:
 			from pprint import pprint
 			with (Path().parent / f'{path.stem}-paragon.txt').open('bw') as out:
-				pprint(paragon_data, stream=out, width=200)
+				pprint(paragon_data, stream=out, width=120)
 			with (Path().parent / f'{path.stem}-data.txt').open('bw') as out:
-				pprint(data, stream=out, width=200)
+				pprint(data, stream=out, width=120)
 		assert data == paragon_data
 
 
@@ -186,6 +186,10 @@ def test_objects_erase(path, lexer, handler):
 				pprint(astuple(paragon_data), stream=out, width=200)
 			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
 				pprint(astuple(data), stream=out, width=200)
+		print()
+		print()
+		debug(boundaries)
+		print()
 		assert data == paragon_data
 
 
