@@ -218,8 +218,12 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	for pointer, text in tape:
 		# discard
 		if not pointer.is_constant and not text:
-			last_discard = True
 			continue
+
+		# calculate real distance movement from previous position.
+		if previous_index + 1 != pointer.index:
+			debug('discard', pointer, text, previous_path, previous_index)
+			last_discard = True
 
 		debug(pointer, text)
 		debug(last_discard)

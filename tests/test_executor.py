@@ -122,7 +122,6 @@ def test_paragraph_copy_discard(path, lexer, handler):
 		builder = fake_enforce(origin_root, tape, boundaries)
 		data = dataform(builder.destination, namespaces)
 
-		debug(tape)
 		paragon_root = xml_parse(paragon_stream).getroot()
 
 		if data != dataform(paragon_root, namespaces):
@@ -186,10 +185,6 @@ def test_objects_erase(path, lexer, handler):
 				pprint(astuple(paragon_data), stream=out, width=120)
 			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
 				pprint(astuple(data), stream=out, width=120)
-		print()
-		print()
-		debug(boundaries)
-		print()
 		assert data == paragon_data
 
 
