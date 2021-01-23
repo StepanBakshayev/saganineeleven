@@ -153,10 +153,10 @@ def test_objects_display(path, lexer, handler):
 
 		if data != paragon_data:
 			from pprint import pprint
-			with (Path().parent / f'{path.stem}-paragon.txt').open('bw') as out:
-				pprint(paragon_data, stream=out, width=120)
-			with (Path().parent / f'{path.stem}-data.txt').open('bw') as out:
-				pprint(data, stream=out, width=120)
+			with (Path().parent / f'{path.stem}-paragon.txt').open('tw') as out:
+				pprint(astuple(paragon_data), stream=out, width=120)
+			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
+				pprint(astuple(data), stream=out, width=120)
 		assert data == paragon_data
 
 
@@ -183,9 +183,9 @@ def test_objects_erase(path, lexer, handler):
 		if data != paragon_data:
 			from pprint import pprint
 			with (Path().parent / f'{path.stem}-paragon.txt').open('tw') as out:
-				pprint(astuple(paragon_data), stream=out, width=200)
+				pprint(astuple(paragon_data), stream=out, width=120)
 			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
-				pprint(astuple(data), stream=out, width=200)
+				pprint(astuple(data), stream=out, width=120)
 		print()
 		print()
 		debug(boundaries)
@@ -207,25 +207,10 @@ def test_making_boundaries():
 
 		chain = tuple(get_chain(origin_root, previous_path))
 		routes = make_ending_range(chain, previous_path, branch_index+1)
-		assert routes == (
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3, 0, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0, 3), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0), crossroad=(4,)),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0, 7), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 0, 0), crossroad=()))
+		assert routes == (Route(branch=(0, 4, 1, 1, 0, 0, 0, 7, 0, 0), crossroad=(4,)),)
 
 		routes = make_opening_range(path, branch_index+1)
-		assert routes == (
-			Route(branch=(0, 4, 1, 1, 1), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 1, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 1, 0, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0), crossroad=()),
-			Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0, 0), crossroad=(0,))
-		)
+		assert routes == (Route(branch=(0, 4, 1, 1, 1, 0, 0, 0, 0, 0), crossroad=(0,)),)
 
 
 def test_delineate_boundaries():
@@ -249,7 +234,7 @@ def test_delineate_boundaries():
 
 		boundaries = delineate_boundaries(origin_root, line)
 
-		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)), Route(branch=(3,), crossroad=()))
+		assert boundaries[min(boundaries)].ending == (Route(branch=(), crossroad=(0, 1, 2)),)
 
 	with (fixture_path/'objects_display.docx.xml').open('br') as stream:
 		content, line = straighten(stream, Lexer, docx.text_nodes, docx.convert)

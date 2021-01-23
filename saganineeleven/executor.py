@@ -169,8 +169,7 @@ def delineate_boundaries(tree_root: Element, line: Line) -> Mapping[Index, Bound
 			if branch_index + 1 < len(pointer.path):
 				opening = make_opening_range(pointer.path, branch_index+1)
 
-			if any((ending, gap.crossroad, opening)):
-				registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
+			registry[pointer.index] = Boundary(ending=ending, gap=gap, opening=opening)
 
 		previous_pointer = pointer
 		previous_route = tuple(get_chain(tree_root, previous_pointer.path))
@@ -197,8 +196,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 
 	def iterate_boundaries(boundaries, start, stop):
 		for index in range(start, stop):
-			if index in boundaries:
-				yield index, boundaries[index]
+			yield index, boundaries[index]
 
 	def jump_over(iboundaries):
 		i_up = next(iboundaries, None)
@@ -208,7 +206,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		while True:
 			i_down = next(iboundaries, None)
 			if i_down is None:
-				# yield up.opening, len(up.opening[-1].branch) + bool(up.opening[-1].crossroad)
 				return
 			_, down = i_down
 			yield up.opening, len(down.gap.branch) + 1
@@ -253,7 +250,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 				if watermark < level:
 					debug(watermark, level)
 
-					closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, pointer.index+1)
+					closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, pointer.index)
 					for index, boundary in closing_boundaries:
 						rolling_index = index
 						for route in boundary.ending+(boundary.gap,):
