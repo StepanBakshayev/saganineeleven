@@ -188,6 +188,35 @@ def test_objects_erase(path, lexer, handler):
 		assert data == paragon_data
 
 
+@pytest.mark.parametrize('path,lexer,handler', tuple(parametrize_by_path(fixture_path/'loop_cell.odt')))
+def test_loop_cell(path, lexer, handler):
+	with path.open('br') as template_stream, (path.parent / f'{path.stem}-rendered{path.suffix}').open('rb') as paragon_stream:
+		content, line = straighten(template_stream, lexer, handler.text_nodes, handler.convert)
+		assert content is content.template
+		template_stream.seek(0)
+		origin_tree = xml_parse(template_stream)
+		origin_root = origin_tree.getroot()
+		namespaces = []
+		boundaries = delineate_boundaries(origin_root, line)
+
+		template = stringify(line)
+		tape = list(parse(render(template, {})))
+
+		builder = fake_enforce(origin_root, tape, boundaries)
+		data = dataform(builder.destination, namespaces)
+
+		paragon_root = xml_parse(paragon_stream).getroot()
+		paragon_data = dataform(paragon_root, namespaces)
+
+		if data != paragon_data:
+			from pprint import pprint
+			with (Path().parent / f'{path.stem}-paragon.txt').open('tw') as out:
+				pprint(astuple(paragon_data), stream=out, width=120)
+			with (Path().parent / f'{path.stem}-data.txt').open('tw') as out:
+				pprint(astuple(data), stream=out, width=120)
+		assert data == paragon_data
+
+
 def test_making_boundaries():
 	with (fixture_path/'case_03.docx.xml').open('br') as stream:
 		origin_tree = xml_parse(stream)

@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns5="http://openoffice.org/2009/office" xmlns:ns6="urn:oasis:names:tc:opendocument:xmlns:text:1.0" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Lohit Devanagari1" ns2:font-family="'Lohit Devanagari'" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="swiss" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="Таблица1" ns1:family="table">
+    <ns1:table-properties ns1:width="17cm" ns3:align="margins" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A" ns1:family="table-column">
+    <ns1:table-column-properties ns1:column-width="17cm" ns1:rel-column-width="65535*" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A1" ns1:family="table-cell">
+    <ns1:table-cell-properties ns4:padding="0.097cm" ns4:border="0.05pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="Таблица1.A2" ns1:family="table-cell">
+    <ns1:table-cell-properties ns4:padding="0.097cm" ns4:border-left="0.05pt solid #000000" ns4:border-right="0.05pt solid #000000" ns4:border-top="none" ns4:border-bottom="0.05pt solid #000000" />
+  </ns1:style>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Table_20_Contents">
+    <ns1:text-properties ns5:rsid="001db250" ns5:paragraph-rsid="001db250" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text>
+    <ns6:sequence-decls>
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Illustration" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Table" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Text" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Drawing" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Figure" />
+    </ns6:sequence-decls>
+    <ns3:table ns3:name="Таблица1" ns3:style-name="Таблица1">
+      <ns3:table-column ns3:style-name="Таблица1.A" />
+      <ns3:table-row ns3:style-name="TableLine94573596807872">
+        <ns3:table-cell ns3:style-name="Таблица1.A1" ns0:value-type="string">
+          <ns6:p ns6:style-name="P1">{% for x in 'ABC' %}</ns6:p>
+        </ns3:table-cell>
+      </ns3:table-row>
+      <ns3:table-row ns3:style-name="TableLine94573596807872">
+        <ns3:table-cell ns3:style-name="Таблица1.A2" ns0:value-type="string">
+          <ns6:p ns6:style-name="P1">{{ x }}</ns6:p>
+        </ns3:table-cell>
+      </ns3:table-row>
+      <ns3:table-row ns3:style-name="TableLine94573596807872">
+        <ns3:table-cell ns3:style-name="Таблица1.A2" ns0:value-type="string">
+          <ns6:p ns6:style-name="P1">{% endfor %}</ns6:p>
+        </ns3:table-cell>
+      </ns3:table-row>
+    </ns3:table>
+    <ns6:p ns6:style-name="Standard" />
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>
