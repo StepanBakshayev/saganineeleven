@@ -76,7 +76,7 @@ def dataform(element: Element, namespaces: MutableSequence) -> ElementData:
 
 	return ElementData(
 		tag, attrib, element.text, element.tail,
-		tuple(map(lambda e: dataform(e, namespaces), element._children))
+		tuple(map(lambda e: dataform(e, namespaces), element))
 	)
 
 

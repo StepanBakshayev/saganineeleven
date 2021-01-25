@@ -245,20 +245,14 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		# calculate real distance movement from previous position.
 		# It is possible to have empty discarded pointers earlier.
 		if pointer.index - previous_present.index > 1:
-			debug('discard', previous_present)
 			last_discard = True
 		else:
 			last_discard = False
-
-		debug(pointer, text)
-		debug(last_discard)
 		build = False
 		# build
 		if loop_body:
 			routes = ()
 			level = previous_present.path
-
-			debug(loop_body, previous_present)
 
 			next_to_previous_index = previous_present.index + 1
 			previous_boundary = boundaries[next_to_previous_index]
@@ -268,7 +262,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			# close from present to loop_body.stop
 			watermark = get_root(level, loop_body.stop.path)
 			if watermark < level:
-				debug(watermark, level)
 
 				rolling_index = next_to_previous_index
 				closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, loop_body.stop.index)
@@ -280,7 +273,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 							level = route.branch
 					if level == watermark:
 						break
-				debug('closing', routes)
 
 			# climb up from loop_body.start to pointer
 			prelude_boundaries = iterate_boundaries(boundaries, loop_body.start.index+1, pointer.index+1)
@@ -288,33 +280,26 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			max_depth = len(pointer.path)
 			for up, lower_depth in jump_over(prelude_boundaries):
 				lower_depth = min(max_depth, lower_depth)
-				debug(up, lower_depth)
 
 				for route in up:
 					if len(route.branch) >= lower_depth:
 						break
 					prelude.append(route)
-				debug('up', prelude)
 
 				while prelude and (len(prelude[-1].branch) + bool(prelude[-1].crossroad)) > lower_depth:
-					debug(prelude.pop())
-				print('---')
+					prelude.pop()
 
 			routes += tuple(prelude)
-			debug('prelude', routes)
 
 			# self prelude
 			if True:
 				routes += boundaries[pointer.index].gap,
 			routes += boundaries[pointer.index].opening
-			debug('selfprelude', routes)
 
 			# copy self
 			routes += Route(pointer.path[:-1], pointer.path[-1:]),
-			debug('self', routes)
 			# empty crossroads are critical here. it reset state of builder.
 			builder.copy(routes)
-			print('loop copy')
 			build = True
 
 		# XXX: this condition is wrong for identifying builder.copy needs (copy presented node or allocate node for set_text).
@@ -322,15 +307,10 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			routes = ()
 			level = previous_present.path
 
-			debug(previous_present.index)
-
 			next_to_previous_index = previous_present.index + 1
 			previous_boundary = boundaries[next_to_previous_index]
 			routes += previous_boundary.ending + (previous_boundary.gap,)
 			level = boundaries[next_to_previous_index].gap.branch
-
-			debug(next_to_previous_index, previous_boundary)
-			debug('next_to_previous_index', routes)
 
 			if last_discard:
 				# pave route to current element
@@ -340,7 +320,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 				# Requirement is sync point of previous and current pointers deeper.
 				watermark = get_root(level, pointer.path)
 				if watermark < level:
-					debug(watermark, level)
 
 					closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, pointer.index+1)
 					for index, boundary in closing_boundaries:
@@ -351,45 +330,36 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 								level = route.branch
 						if level == watermark:
 							break
-					debug('closing', routes)
 
 				# Second, climb up to current pointer using prelude from holes.
 				# Requirement is holes between previous and current pointers.
 				# XXX: I suspect one more requirement. It is about some distance in depth between root and pointer.path.
 				if rolling_index < pointer.index:
-					debug(rolling_index, pointer.index)
 
 					prelude_boundaries = iterate_boundaries(boundaries, rolling_index, pointer.index+1)
 					prelude = []
 					max_depth = len(pointer.path)
 					for up, lower_depth in jump_over(prelude_boundaries):
 						lower_depth = min(max_depth, lower_depth)
-						debug(up, lower_depth)
 
 						for route in up:
 							if len(route.branch) >= lower_depth:
 								break
 							prelude.append(route)
-						debug('up', prelude)
 
 						while prelude and (len(prelude[-1].branch) + bool(prelude[-1].crossroad)) > lower_depth:
-							debug(prelude.pop())
-						print('---')
+							prelude.pop()
 
 					routes += tuple(prelude)
-					debug('prelude', routes)
 
 			# self prelude
 			if last_discard:
 				routes += boundaries[pointer.index].gap,
 			routes += boundaries[pointer.index].opening
-			debug('selfprelude', routes)
 
 			# copy self
 			routes += Route(pointer.path[:-1], pointer.path[-1:]),
-			debug('self', routes)
 			builder.copy(filter(attrgetter('crossroad'), routes))
-			print('copy')
 			build = True
 
 		# set text
@@ -404,21 +374,17 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 					element.text = text
 				else:
 					element.text += text
-				debug('run', element.text)
 			elif current_element.tag.endswith('}textpath'):
 				if build:
 					current_element.set('string', text)
 				else:
 					current_element.set('string', current_element.get('string')+text)
-				debug('textpath', current_element.attrib)
 			else:
 				raise  NotImplementedError(repr(current_element))
-			print('set_text')
 
 		previous_present = ElementPosition(pointer.path, pointer.index)
 		previous_discarded = None
 		last_discard = False
-		print()
 
 	last_index = max(boundaries)
 
@@ -427,19 +393,14 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	previous_boundary = boundaries[next_to_previous_index]
 	routes += previous_boundary.ending + (previous_boundary.gap,)
 	level = boundaries[next_to_previous_index].gap.branch
-	debug('previous present', routes)
 	# 1) continue closing
-	debug(last_discard, previous_present, last_index, boundaries[last_index])
 	if last_discard:
 		rolling_index = next_to_previous_index
 
 		# First, close all opened elements by present pointers, but with holes on the way to current pointer.
 		# Requirement is sync point of previous and current pointers deeper.
 		watermark = boundaries[last_index].gap.branch
-		debug(watermark, level)
 		if watermark < level:
-			debug(watermark, level)
-			debug(rolling_index+1, last_index+1, boundaries)
 
 			closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, last_index+1)
 			for index, boundary in closing_boundaries:
@@ -450,8 +411,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 						level = route.branch
 				if level == watermark:
 					break
-
-			debug('close', routes)
 	# copy current
 	routes += boundaries[last_index].opening
 	builder.copy(filter(attrgetter('crossroad'), routes))
