@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="http://openoffice.org/2009/office" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns5="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:ns6="urn:oasis:names:tc:opendocument:xmlns:text:1.0" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Lohit Devanagari1" ns2:font-family="'Lohit Devanagari'" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="swiss" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Table_20_Contents">
+    <ns1:text-properties ns3:rsid="00097d34" ns3:paragraph-rsid="00097d34" />
+  </ns1:style>
+  <ns1:style ns1:name="P2" ns1:family="paragraph" ns1:parent-style-name="Standard">
+    <ns1:paragraph-properties ns4:break-before="column" />
+    <ns1:text-properties ns3:rsid="00097d34" />
+  </ns1:style>
+  <ns1:style ns1:name="gr1" ns1:family="graphic">
+    <ns1:graphic-properties ns5:textarea-horizontal-align="justify" ns5:textarea-vertical-align="middle" ns5:auto-grow-height="false" ns4:min-height="3.415cm" ns4:min-width="7.361cm" ns1:run-through="foreground" ns1:wrap="run-through" ns1:number-wrapped-paragraphs="no-limit" ns1:vertical-pos="from-top" ns1:vertical-rel="paragraph" ns1:horizontal-pos="from-left" ns1:horizontal-rel="paragraph" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text>
+    <ns6:sequence-decls>
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Illustration" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Table" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Text" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Drawing" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Figure" />
+    </ns6:sequence-decls>
+    <ns6:p ns6:style-name="P2"><ns5:custom-shape ns6:anchor-type="paragraph" ns5:z-index="0" ns5:name="Фигура1" ns5:style-name="gr1" ns2:width="7.361cm" ns2:height="3.416cm" ns2:x="0.337cm" ns2:y="0.145cm"><ns6:p>Shape text</ns6:p><ns6:p>{{ master_02 }}</ns6:p><ns5:enhanced-geometry ns2:viewBox="0 0 21600 21600" ns5:type="rectangle" ns5:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N" /></ns5:custom-shape></ns6:p>
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>
