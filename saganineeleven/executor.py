@@ -66,14 +66,13 @@ class TreeBuilder:
 	source_chain: List[Element] = field(default_factory=list, init=False)
 	destination_chain: List[Element] = field(default_factory=list, init=False)
 	current_route: Route = field(default_factory=lambda: Route((), ()), init=False)
-	current_element: Element = field(init=False)
+	current_element: Optional[Element] = field(default=None, init=False)
 
 	def __post_init__(self):
 		self.source_chain.append(self.source)
 
 		self.destination = element_selfcopy(self.source)
 		self.destination_chain.append(self.destination)
-		self.current_element = self.destination
 
 	def copy(self, routes: Iterator[Route]):
 		for route in routes:
@@ -82,6 +81,8 @@ class TreeBuilder:
 			# _branch starts with root.
 			self.source_chain = self.source_chain[:branch_index + 1]
 			self.destination_chain = self.destination_chain[:branch_index + 1]
+			self.current_route = Route(root, ())
+			self.current_element = None
 
 			for index in route.branch[branch_index:]:
 				# There are many similar names, append, indexing. Use intermediate names for different terms.
@@ -241,28 +242,92 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			continue
 
 		# calculate real distance movement from previous position.
+		# It is possible to have empty discarded pointers earlier.
 		if previous_present.index + 1 != pointer.index:
-			debug('discard', pointer, text, previous_present.path, previous_present.index)
+			debug('discard', previous_present)
 			last_discard = True
 
 		debug(pointer, text)
 		debug(last_discard)
+		build = False
 		# build
-		# XXX: ignore cycles for awhile.
-		if previous_present.path != pointer.path:
+		if loop_body:
+			routes = ()
+			level = previous_present.path
+
+			debug(loop_body, previous_present)
+
+			next_to_previous_index = previous_present.index + 1
+			previous_boundary = boundaries[next_to_previous_index]
+			routes += previous_boundary.ending + (previous_boundary.gap,)
+			level = boundaries[next_to_previous_index].gap.branch
+
+			# close from present to loop_body.stop
+			watermark = get_root(level, loop_body.stop.path)
+			if watermark < level:
+				debug(watermark, level)
+
+				rolling_index = next_to_previous_index
+				closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, loop_body.stop.index)
+				for index, boundary in closing_boundaries:
+					rolling_index = index
+					for route in boundary.ending+(boundary.gap,):
+						if level > route.branch:
+							routes += route,
+							level = route.branch
+					if level == watermark:
+						break
+				debug('closing', routes)
+
+			# climb up from loop_body.start to pointer
+			prelude_boundaries = iterate_boundaries(boundaries, loop_body.start.index+1, pointer.index+1)
+			prelude = []
+			max_depth = len(pointer.path)
+			for up, lower_depth in jump_over(prelude_boundaries):
+				lower_depth = min(max_depth, lower_depth)
+				debug(up, lower_depth)
+
+				for route in up:
+					if len(route.branch) >= lower_depth:
+						break
+					prelude.append(route)
+				debug('up', prelude)
+
+				while prelude and (len(prelude[-1].branch) + bool(prelude[-1].crossroad)) > lower_depth:
+					debug(prelude.pop())
+				print('---')
+
+			routes += tuple(prelude)
+			debug('prelude', routes)
+
+			# self prelude
+			if True:
+				routes += boundaries[pointer.index].gap,
+			routes += boundaries[pointer.index].opening
+			debug('selfprelude', routes)
+
+			# copy self
+			routes += Route(pointer.path[:-1], pointer.path[-1:]),
+			debug('self', routes)
+			# empty crossroads are critical here. it reset state of builder.
+			builder.copy(routes)
+			print('loop copy')
+			build = True
+
+		# XXX: this condition is wrong for identifying builder.copy needs (copy presented node or allocate node for set_text).
+		elif previous_present.path != pointer.path:
 			routes = ()
 			level = previous_present.path
 
 			debug(previous_present.index)
 
 			next_to_previous_index = previous_present.index + 1
-			if next_to_previous_index in boundaries:
-				previous_boundary = boundaries[next_to_previous_index]
-				routes += previous_boundary.ending + (previous_boundary.gap,)
-				level = boundaries[next_to_previous_index].gap.branch
+			previous_boundary = boundaries[next_to_previous_index]
+			routes += previous_boundary.ending + (previous_boundary.gap,)
+			level = boundaries[next_to_previous_index].gap.branch
 
-				debug(next_to_previous_index, previous_boundary)
-				debug('next_to_previous_index', routes)
+			debug(next_to_previous_index, previous_boundary)
+			debug('next_to_previous_index', routes)
 
 			if last_discard:
 				# pave route to current element
@@ -292,7 +357,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 					debug(rolling_index, pointer.index)
 
 					prelude_boundaries = iterate_boundaries(boundaries, rolling_index, pointer.index+1)
-					# debug(routes, level, watermark, index)
 					prelude = []
 					max_depth = len(pointer.path)
 					for up, lower_depth in jump_over(prelude_boundaries):
@@ -313,10 +377,9 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 					debug('prelude', routes)
 
 			# self prelude
-			if pointer.index in boundaries:
-				if last_discard:
-					routes += boundaries[pointer.index].gap,
-				routes += boundaries[pointer.index].opening
+			if last_discard:
+				routes += boundaries[pointer.index].gap,
+			routes += boundaries[pointer.index].opening
 			debug('selfprelude', routes)
 
 			# copy self
@@ -324,6 +387,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 			debug('self', routes)
 			builder.copy(filter(attrgetter('crossroad'), routes))
 			print('copy')
+			build = True
 
 		# set text
 		if not pointer.is_constant and text:
@@ -333,13 +397,13 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 				for element in current_element:
 					if element.tag.endswith('}t'):
 						break
-				if previous_present.path != pointer.path:
+				if build:
 					element.text = text
 				else:
 					element.text += text
 				debug('run', element.text)
 			elif current_element.tag.endswith('}textpath'):
-				if previous_present.path != pointer.path:
+				if build:
 					current_element.set('string', text)
 				else:
 					current_element.set('string', current_element.get('string')+text)
