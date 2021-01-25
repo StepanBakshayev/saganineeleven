@@ -239,13 +239,16 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		# discard
 		if not pointer.is_constant and not text:
 			previous_discarded = ElementPosition(pointer.path, pointer.index)
+			last_discard = True
 			continue
 
 		# calculate real distance movement from previous position.
 		# It is possible to have empty discarded pointers earlier.
-		if previous_present.index + 1 != pointer.index:
+		if pointer.index - previous_present.index > 1:
 			debug('discard', previous_present)
 			last_discard = True
+		else:
+			last_discard = False
 
 		debug(pointer, text)
 		debug(last_discard)
@@ -339,7 +342,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 				if watermark < level:
 					debug(watermark, level)
 
-					closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, pointer.index)
+					closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, pointer.index+1)
 					for index, boundary in closing_boundaries:
 						rolling_index = index
 						for route in boundary.ending+(boundary.gap,):
@@ -417,12 +420,39 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		last_discard = False
 		print()
 
-	routes = ()
-	if previous_present.index + 1 in boundaries:
-		routes += boundaries[previous_present.index+1].ending
-	# 1) continue closing
-	# copy current
 	last_index = max(boundaries)
+
+	routes = ()
+	next_to_previous_index = previous_present.index + 1
+	previous_boundary = boundaries[next_to_previous_index]
+	routes += previous_boundary.ending + (previous_boundary.gap,)
+	level = boundaries[next_to_previous_index].gap.branch
+	debug('previous present', routes)
+	# 1) continue closing
+	debug(last_discard, previous_present, last_index, boundaries[last_index])
+	if last_discard:
+		rolling_index = next_to_previous_index
+
+		# First, close all opened elements by present pointers, but with holes on the way to current pointer.
+		# Requirement is sync point of previous and current pointers deeper.
+		watermark = boundaries[last_index].gap.branch
+		debug(watermark, level)
+		if watermark < level:
+			debug(watermark, level)
+			debug(rolling_index+1, last_index+1, boundaries)
+
+			closing_boundaries = iterate_boundaries(boundaries, rolling_index+1, last_index+1)
+			for index, boundary in closing_boundaries:
+				rolling_index = index
+				for route in boundary.ending+(boundary.gap,):
+					if level > route.branch:
+						routes += route,
+						level = route.branch
+				if level == watermark:
+					break
+
+			debug('close', routes)
+	# copy current
 	routes += boundaries[last_index].opening
 	builder.copy(filter(attrgetter('crossroad'), routes))
 
