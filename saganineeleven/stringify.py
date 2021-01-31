@@ -1,12 +1,11 @@
-from itertools import islice
-from typing import Sequence, Iterator, Tuple
-
 import re
+from dataclasses import astuple
+from itertools import islice
+from typing import Iterator, Tuple
 
 from msgpack import packb, unpackb
 
 from .straighten import ElementPointer, Line
-from dataclasses import astuple
 
 # surrogates U+DC80 to U+DCFF
 element_re = re.compile(r'\ud800([\U00000000-\U0010ffff]+?)\ud801')

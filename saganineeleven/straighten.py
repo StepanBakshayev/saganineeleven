@@ -13,14 +13,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-import re
-from collections import deque, Counter, namedtuple
 from dataclasses import dataclass, replace
 from enum import Enum
-from itertools import chain, count
-from typing import Tuple, List, Set, Callable, Sequence, Iterable, Mapping
-from xml.etree.ElementTree import iterparse, ElementTree, Element
-
+from itertools import chain
+from typing import Callable, Iterable, Mapping, Sequence, Tuple
+from xml.etree.ElementTree import Element
 
 Token = Enum('Event', 'text terminal', module=__name__)
 

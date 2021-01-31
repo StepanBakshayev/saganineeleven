@@ -15,7 +15,7 @@
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
 from typing import Iterable, Tuple
 from xml.etree.ElementTree import Element
-from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
+from zipfile import ZIP_DEFLATED, ZipExtFile, ZipFile
 
 from saganineeleven.straighten import Path
 

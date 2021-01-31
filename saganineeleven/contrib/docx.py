@@ -82,7 +82,7 @@ from dataclasses import dataclass
 from itertools import chain, count
 from typing import Iterable, Tuple
 from xml.etree.ElementTree import Element
-from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
+from zipfile import ZIP_DEFLATED, ZipExtFile, ZipFile
 
 from saganineeleven.straighten import Path
 

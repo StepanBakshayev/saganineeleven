@@ -1,13 +1,11 @@
 from dataclasses import astuple
+from xml.etree.ElementTree import fromstring
 
-from devtools import debug
+from test_executor import dataform
 
 from saganineeleven.contrib import docx
-from xml.etree.ElementTree import ElementTree, Element, fromstring
-
 from saganineeleven.contrib.docx import processor_factory
-from saganineeleven.executor import TreeBuilder, Route
-from test_executor import dataform
+from saganineeleven.executor import Route, TreeBuilder
 
 
 def test_docx():

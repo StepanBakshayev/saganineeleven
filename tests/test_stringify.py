@@ -1,7 +1,7 @@
 from itertools import count
 
-from saganineeleven.stringify import stringify, parse
-from saganineeleven.straighten import elementstr, ElementPointer, ETC
+from saganineeleven.straighten import ETC, ElementPointer
+from saganineeleven.stringify import parse, stringify
 
 
 def test():

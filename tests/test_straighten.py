@@ -2,9 +2,10 @@ from io import StringIO
 
 import pytest
 
-from saganineeleven.straighten import straighten, ShadowElement, ContentType, ETC
 from saganineeleven.contrib.django import Lexer
-from saganineeleven.contrib.docx import text_nodes, convert
+from saganineeleven.contrib.docx import convert, text_nodes
+from saganineeleven.straighten import (ETC, ContentType, ShadowElement,
+                                       straighten)
 
 
 @pytest.mark.skip(reason='until make decision about compress in pipeline')

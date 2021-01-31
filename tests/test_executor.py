@@ -1,25 +1,20 @@
 import re
-import sys
-from collections import deque, namedtuple
 from dataclasses import astuple, dataclass
-from io import StringIO
 from itertools import chain
-from operator import attrgetter
 from pathlib import Path
-from typing import Sequence, MutableSequence
+from typing import MutableSequence
+from xml.etree.ElementTree import Element, ElementTree
+from xml.etree.ElementTree import parse as xml_parse
 
 import pytest
-from devtools import debug
 
-from saganineeleven.contrib.django import Lexer, render
-from saganineeleven.contrib.docx import text_nodes, convert
 from saganineeleven.contrib import docx, odt
-from saganineeleven.executor import get_root, delineate_boundaries, fake_enforce, make_ending_range, get_chain, Route, \
-	make_opening_range, TreeBuilder
-from xml.etree.ElementTree import parse as xml_parse, ElementTree, Element
-
+from saganineeleven.contrib.django import Lexer, render
+from saganineeleven.executor import (Route, TreeBuilder, delineate_boundaries,
+                                     enforce, get_chain, get_root,
+                                     make_ending_range, make_opening_range)
 from saganineeleven.straighten import straighten
-from saganineeleven.stringify import stringify, parse
+from saganineeleven.stringify import parse, stringify
 
 fixture_path = Path(__file__).absolute().parent / 'fixture'
 
@@ -41,7 +36,6 @@ def parametrize_by_path(path):
 			yield pytest.param(xml, Lexer, mapping[handler_name], id=xml.name)
 
 
-# ElementData = namedtuple('ElementData', 'tag attrib text tail children', module=__name__)
 @dataclass(frozen=True)
 class ElementData:
 	tag: str
@@ -93,7 +87,7 @@ def test_paragraph_discard_copy(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -117,7 +111,7 @@ def test_paragraph_copy_discard(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -141,7 +135,7 @@ def test_objects_display(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -169,7 +163,7 @@ def test_objects_erase(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -197,7 +191,7 @@ def test_loop_cell(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -225,7 +219,7 @@ def test_hole_before_ending(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -254,7 +248,7 @@ def test_on_style(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()
@@ -282,7 +276,7 @@ def test_terminal_divided(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
+		builder = enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 
 		paragon_root = xml_parse(paragon_stream).getroot()

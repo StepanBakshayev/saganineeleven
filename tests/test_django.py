@@ -3,7 +3,7 @@ from dataclasses import replace
 from django.conf import settings
 
 from saganineeleven.contrib.django import Lexer
-from saganineeleven.straighten import elementstr, Token, ShadowElement
+from saganineeleven.straighten import ShadowElement, Token, elementstr
 
 
 def test_lexer():

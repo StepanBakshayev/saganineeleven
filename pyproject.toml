@@ -25,6 +25,8 @@ pytest = "^6.2.1"
 #    project=Project(Path.cwd()), **kwds)
 #TypeError: __init__() got 2 unexpected keyword arguments
 jedi = "~=0.17.2"
+autoflake = "^1.4"
+isort = "^5.7.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

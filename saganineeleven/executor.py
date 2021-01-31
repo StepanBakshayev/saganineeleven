@@ -13,19 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-import sys
 from dataclasses import dataclass, field, replace
-from enum import Enum
-from operator import itemgetter, attrgetter
-from xml.etree.ElementTree import ElementTree, parse, Element
+from operator import attrgetter, itemgetter
+from typing import Callable, Iterator, List, Mapping, Optional, Sequence, Tuple
+from xml.etree.ElementTree import Element
 
-from typing_extensions import Literal
-
-from itertools import islice, tee, chain
-from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List, Mapping, TypeVar, NewType, Callable
-
-from .straighten import ElementPointer, Path, Line, Index
+from .straighten import Index, Line, Path
 
 
 def get_root(a: Sequence, b: Sequence) -> Sequence:
@@ -203,7 +196,7 @@ class LoopBody:
 	stop: ElementPosition
 
 
-def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary], processor_factory: Callable) -> TreeBuilder:
+def enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary], processor_factory: Callable) -> TreeBuilder:
 	def iterate_boundaries(boundaries, start, stop):
 		for index in range(start, stop):
 			yield index, boundaries[index]

@@ -18,7 +18,7 @@
 #
 from dataclasses import replace
 
-from saganineeleven.straighten import ShadowElement, elementstr, compress, ETC
+from saganineeleven.straighten import ETC, ShadowElement, compress, elementstr
 
 
 def test_elementstr_single():
