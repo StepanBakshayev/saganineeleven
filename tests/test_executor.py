@@ -254,8 +254,6 @@ def test_on_style(path, lexer, handler):
 		template = stringify(line)
 		tape = list(parse(render(template, {})))
 
-		debug(line, tape, boundaries)
-
 		builder = fake_enforce(origin_root, tape, boundaries, handler.processor_factory)
 		data = dataform(builder.destination, namespaces)
 

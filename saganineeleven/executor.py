@@ -18,6 +18,7 @@ from dataclasses import dataclass, field, replace
 from enum import Enum
 from operator import itemgetter, attrgetter
 from xml.etree.ElementTree import ElementTree, parse, Element
+
 from typing_extensions import Literal
 
 from itertools import islice, tee, chain
@@ -229,8 +230,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	processor = None
 	# boundaries are used to skip holes in tree in climbing up in tree and moving forward on tape.
 	for pointer, text in tape:
-		if loop_body and pointer.index > loop_body.stop.index:
-			loop_body = None
 		if previous_discarded and pointer.index < previous_discarded.index:
 			loop_body = LoopBody(ElementPosition(pointer.path, pointer.index), previous_discarded)
 			previous_discarded = None
@@ -251,7 +250,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		# build
 		if loop_body:
 			routes = ()
-			level = previous_present.path
 
 			next_to_previous_index = previous_present.index + 1
 			previous_boundary = boundaries[next_to_previous_index]
@@ -304,7 +302,6 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		# XXX: this condition is wrong for identifying builder.copy needs (copy presented node or allocate node for set_text).
 		elif previous_present.path != pointer.path:
 			routes = ()
-			level = previous_present.path
 
 			next_to_previous_index = previous_present.index + 1
 			previous_boundary = boundaries[next_to_previous_index]
@@ -372,6 +369,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 		previous_present = ElementPosition(pointer.path, pointer.index)
 		previous_discarded = None
 		last_discard = False
+		loop_body = None
 
 	if processor is not None:
 		processor.close()

@@ -28,7 +28,7 @@
     <ns0:r><ns0:rPr><ns0:b /><ns0:bCs /></ns0:rPr><ns0:t>B-old</ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t xml:space="preserve"> </ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t>letter</ns0:t></ns0:r>
-    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:tab/><ns0:t xml:space="preserve"> is odd   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:t xml:space="preserve">\t is odd   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FF0000" /><ns0:shd ns0:fill="FFD8CE" ns0:val="clear" /></ns0:rPr><ns0:t>continue</ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve"> iterati</ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FFFF00" /><ns0:shd ns0:fill="5983B0" ns0:val="clear" /></ns0:rPr><ns0:t>ng...</ns0:t></ns0:r>
@@ -47,7 +47,7 @@
     <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
     <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
   </ns0:p>
-    <ns0:sectPr>
+  <ns0:sectPr>
     <ns0:type ns0:val="nextPage" />
     <ns0:pgSz ns0:w="11906" ns0:h="16838" />
     <ns0:pgMar ns0:left="1134" ns0:right="1134" ns0:header="0" ns0:top="1134" ns0:footer="0" ns0:bottom="1134" ns0:gutter="0" />
