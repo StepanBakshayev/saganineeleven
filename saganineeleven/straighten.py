@@ -18,10 +18,9 @@ from collections import deque, Counter, namedtuple
 from dataclasses import dataclass, replace
 from enum import Enum
 from itertools import chain, count
-from typing import Tuple, List, Set, Callable, Sequence
+from typing import Tuple, List, Set, Callable, Sequence, Iterable, Mapping
 from xml.etree.ElementTree import iterparse, ElementTree, Element
 
-from devtools import debug
 
 Token = Enum('Event', 'text terminal', module=__name__)
 
@@ -156,6 +155,12 @@ def compress(element: elementstr) -> elementstr:
 	return element
 
 
+def travel(node: Element, level=0):
+	yield level, node
+	for child in node:
+		yield from travel(child, level+1)
+
+
 @dataclass(frozen=True)
 class ElementPointer:
 	path: Path
@@ -167,45 +172,40 @@ Line = Sequence[Tuple[ElementPointer, str]]
 
 
 def straighten(
-	file,
+	root: Element,
 	Lexer,
-	text_nodes: Set[str],
-	converter: Callable[[Element], str]
+	text_nodes: Mapping[str, int],
+	converter: Callable[[Element], Iterable[Tuple[Path, str]]]
 ) -> Tuple[ContentType, Line]:
 	lexer = Lexer()
 	content_type = ContentType.plaintext
-	# XXX: ElementTree construct whole tree in memory anyway. This consumes memory for nothing.
-	parser = iterparse(file, events=('start', 'end',))
-	event, element = next(parser)
-	assert event == 'start'
-	branch = [element]
-	for (event, element) in parser:
-		if event == 'start':
-			branch.append(element)
+	traveler = travel(root)
+	branch = []
+	watermark = None
+	for level, element in traveler:
+		if watermark is not None:
+			if level > watermark:
+				continue
+			watermark = None
 
-		elif event == 'end':
-			if element.tag in text_nodes:
-				text = converter(element)
-				# XXX: Stub. I found case with text_nodes <r>. It contains <AlternateContent> as content.
-				# XXX: This breaks idea of text_nodes are leaves.
-				if text:
-					chunk = elementstr(text)
-					chunk.elements = ShadowElement(
-						path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:]))),
-						atom=text_nodes[element.tag],
-						representation_length=len(chunk),
-						offset=0,
-						length=len(chunk),
-						is_constant=True,
-					),
-					lexer.feed(chunk)
+		if level+1 <= len(branch):
+			branch[level:] = []
+		branch.append(element)
 
-			branch.pop()
-			# XXX: It is stub for ElementTree, unlink children to free memory.
-			element[:] = []
+		if element.tag in text_nodes:
+			for path, text in converter(element):
+				chunk = elementstr(text)
+				chunk.elements = ShadowElement(
+					path=tuple(map(lambda z: list(z[0]).index(z[1]), zip(branch, branch[1:])))+path,
+					atom=text_nodes[element.tag]-len(path)+1,  # below code block is using reverse, prepare data for handling.
+					representation_length=len(chunk),
+					offset=0,
+					length=len(chunk),
+					is_constant=True,
+				),
+				lexer.feed(chunk)
 
-		else:
-			raise RuntimeError(f'Unsupported event type {event} from ElementTree.iterparse().')
+			watermark = level
 
 	line = []
 	index = 0
@@ -228,10 +228,9 @@ def straighten(
 			# Once more terminal can be splitted by many elements, use first and ignore others.
 			# XXX: this is wrong. It is Poor's man solution.
 			head, tail = elements[0], elements[-1]
-			elements = (
-				replace(head, length=len(estr), is_constant=False),
-				replace(tail, offset=tail.offset+tail.length, length=0, is_constant=False),
-			)
+			elements = replace(head, length=len(estr), is_constant=False),
+			for element in rest:
+				elements += replace(element, offset=element.offset+element.length, length=0, is_constant=False),
 
 		offset = 0
 		for element in elements:

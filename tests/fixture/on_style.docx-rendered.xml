@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document xmlns:ns0="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:ns1="http://schemas.openxmlformats.org/markup-compatibility/2006" ns1:Ignorable="w14 wp14">
+<ns0:body>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Normal" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /><ns0:tab /><ns0:t xml:space="preserve">   A</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t xml:space="preserve"> </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t>letter</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FF0000" /><ns0:shd ns0:fill="FFD8CE" ns0:val="clear" /></ns0:rPr><ns0:t>continue</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve"> iterati</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FFFF00" /><ns0:shd ns0:fill="5983B0" ns0:val="clear" /></ns0:rPr><ns0:t>ng...</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Normal" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /><ns0:tab /></ns0:r>
+    <ns0:r><ns0:rPr><ns0:b /><ns0:bCs /></ns0:rPr><ns0:t>B-old</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t xml:space="preserve"> </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t>letter</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:tab/><ns0:t xml:space="preserve"> is odd   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FF0000" /><ns0:shd ns0:fill="FFD8CE" ns0:val="clear" /></ns0:rPr><ns0:t>continue</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve"> iterati</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="FFFF00" /><ns0:shd ns0:fill="5983B0" ns0:val="clear" /></ns0:rPr><ns0:t>ng...</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+  </ns0:p>
+  <ns0:p>
+    <ns0:pPr>
+      <ns0:pStyle ns0:val="Normal" />
+      <ns0:bidi ns0:val="0" />
+      <ns0:jc ns0:val="start" />
+      <ns0:rPr />
+    </ns0:pPr>
+    <ns0:r><ns0:rPr /><ns0:tab /><ns0:t xml:space="preserve">   C</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t xml:space="preserve"> </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i /><ns0:iCs /></ns0:rPr><ns0:t>letter</ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t><ns0:br /><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+    <ns0:r><ns0:rPr><ns0:i ns0:val="false" /><ns0:iCs ns0:val="false" /><ns0:color ns0:val="800080" /><ns0:shd ns0:fill="CCCCCC" ns0:val="clear" /></ns0:rPr><ns0:t xml:space="preserve">   </ns0:t></ns0:r>
+  </ns0:p>
+    <ns0:sectPr>
+    <ns0:type ns0:val="nextPage" />
+    <ns0:pgSz ns0:w="11906" ns0:h="16838" />
+    <ns0:pgMar ns0:left="1134" ns0:right="1134" ns0:header="0" ns0:top="1134" ns0:footer="0" ns0:bottom="1134" ns0:gutter="0" />
+    <ns0:pgNumType ns0:fmt="decimal" />
+    <ns0:formProt ns0:val="false" />
+    <ns0:textDirection ns0:val="lrTb" />
+    <ns0:docGrid ns0:type="default" ns0:linePitch="600" ns0:charSpace="32768" />
+  </ns0:sectPr>
+</ns0:body>
+</ns0:document>

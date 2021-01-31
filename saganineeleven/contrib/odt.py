@@ -13,9 +13,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
+from typing import Iterable, Tuple
 from xml.etree.ElementTree import Element
 from zipfile import ZipFile, ZIP_DEFLATED, ZipExtFile
 
+from saganineeleven.straighten import Path
 
 CHUNK_SIZE = max(256 * 1024, ZipExtFile.MIN_READ_SIZE) # in bytes
 ENCODING = 'UTF-8'
@@ -43,8 +45,8 @@ text_nodes = {
 }
 
 
-def convert(element: Element) -> str:
+def convert(element: Element) -> Iterable[Tuple[Path, str]]:
 	if element.tag not in text_nodes:
 		raise RuntimeError(f'Unsupported element {element.tag}. Supported {set(text_nodes)}.', element, set(text_nodes))
 
-	return ''.join(element.itertext())
+	return ((), ''.join(element.itertext())),

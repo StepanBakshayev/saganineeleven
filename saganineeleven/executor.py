@@ -20,11 +20,9 @@ from operator import itemgetter, attrgetter
 from xml.etree.ElementTree import ElementTree, parse, Element
 from typing_extensions import Literal
 
-from devtools import debug
-
 from itertools import islice, tee, chain
 from collections import namedtuple, deque
-from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List, Mapping, TypeVar, NewType
+from typing import Tuple, Sequence, Deque, Iterator, Dict, Union, Optional, List, Mapping, TypeVar, NewType, Callable
 
 from .straighten import ElementPointer, Path, Line, Index
 
@@ -204,7 +202,7 @@ class LoopBody:
 	stop: ElementPosition
 
 
-def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary]) -> TreeBuilder:
+def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary], processor_factory: Callable) -> TreeBuilder:
 	def iterate_boundaries(boundaries, start, stop):
 		for index in range(start, stop):
 			yield index, boundaries[index]
@@ -228,6 +226,7 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 	previous_discarded = None
 	loop_body = None
 	last_discard = False
+	processor = None
 	# boundaries are used to skip holes in tree in climbing up in tree and moving forward on tape.
 	for pointer, text in tape:
 		if loop_body and pointer.index > loop_body.stop.index:
@@ -364,27 +363,18 @@ def fake_enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundar
 
 		# set text
 		if not pointer.is_constant and text:
-			# XXX: temporary stub, each document handler must provide middleware for management text content.
-			current_element = builder.current_element
-			if current_element.tag.endswith('}r'):
-				for element in current_element:
-					if element.tag.endswith('}t'):
-						break
-				if build:
-					element.text = text
-				else:
-					element.text += text
-			elif current_element.tag.endswith('}textpath'):
-				if build:
-					current_element.set('string', text)
-				else:
-					current_element.set('string', current_element.get('string')+text)
-			else:
-				raise  NotImplementedError(repr(current_element))
+			if build:
+				if processor is not None:
+					processor.close()
+				processor = processor_factory(builder.destination_chain[-1], builder.current_element)
+			processor.feed(text)
 
 		previous_present = ElementPosition(pointer.path, pointer.index)
 		previous_discarded = None
 		last_discard = False
+
+	if processor is not None:
+		processor.close()
 
 	last_index = max(boundaries)
 

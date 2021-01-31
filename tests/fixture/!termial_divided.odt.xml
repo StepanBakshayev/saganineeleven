@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:document-content xmlns:ns0="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:ns1="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ns2="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:ns3="http://openoffice.org/2009/office" xmlns:ns4="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ns5="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:ns6="urn:oasis:names:tc:opendocument:xmlns:text:1.0" ns0:version="1.3">
+<ns0:scripts />
+<ns0:font-face-decls>
+  <ns1:font-face ns1:name="Lohit Devanagari1" ns2:font-family="'Lohit Devanagari'" />
+  <ns1:font-face ns1:name="Liberation Serif" ns2:font-family="'Liberation Serif'" ns1:font-family-generic="roman" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Liberation Sans" ns2:font-family="'Liberation Sans'" ns1:font-family-generic="swiss" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Lohit Devanagari" ns2:font-family="'Lohit Devanagari'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Sans CJK SC" ns2:font-family="'Noto Sans CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+  <ns1:font-face ns1:name="Noto Serif CJK SC" ns2:font-family="'Noto Serif CJK SC'" ns1:font-family-generic="system" ns1:font-pitch="variable" />
+</ns0:font-face-decls>
+<ns0:automatic-styles>
+  <ns1:style ns1:name="P1" ns1:family="paragraph" ns1:parent-style-name="Standard">
+    <ns1:text-properties ns3:paragraph-rsid="0003de8a" />
+  </ns1:style>
+  <ns1:style ns1:name="T1" ns1:family="text">
+    <ns1:text-properties ns4:font-style="normal" ns3:rsid="0003e537" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T2" ns1:family="text">
+    <ns1:text-properties ns4:color="#800080" ns5:opacity="100%" ns4:font-style="normal" ns3:rsid="0003e537" ns4:background-color="#cccccc" ns5:char-shading-value="0" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T3" ns1:family="text">
+    <ns1:text-properties ns4:color="#800080" ns5:opacity="100%" ns4:font-style="normal" ns3:rsid="00097b41" ns4:background-color="#cccccc" ns5:char-shading-value="0" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T4" ns1:family="text">
+    <ns1:text-properties ns4:color="#800080" ns5:opacity="100%" ns4:font-style="normal" ns3:rsid="0003de8a" ns4:background-color="#cccccc" ns5:char-shading-value="0" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T5" ns1:family="text">
+    <ns1:text-properties ns4:color="#ff0000" ns5:opacity="100%" ns4:font-style="normal" ns3:rsid="0003e537" ns4:background-color="#ffd8ce" ns5:char-shading-value="0" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T6" ns1:family="text">
+    <ns1:text-properties ns4:color="#ffff00" ns5:opacity="100%" ns4:font-style="normal" ns3:rsid="0003e537" ns4:background-color="#5983b0" ns5:char-shading-value="0" ns1:font-style-asian="normal" ns1:font-style-complex="normal" />
+  </ns1:style>
+  <ns1:style ns1:name="T7" ns1:family="text">
+    <ns1:text-properties ns3:rsid="0003de8a" />
+  </ns1:style>
+</ns0:automatic-styles>
+<ns0:body>
+  <ns0:text>
+    <ns6:sequence-decls>
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Illustration" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Table" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Text" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Drawing" />
+      <ns6:sequence-decl ns6:display-outline-level="0" ns6:name="Figure" />
+    </ns6:sequence-decls>
+    <ns6:p ns6:style-name="P1"><ns6:span ns6:style-name="T1"><ns6:s ns6:c="3" /></ns6:span><ns6:span ns6:style-name="T2">{% if not </ns6:span><ns6:span ns6:style-name="T4">False</ns6:span><ns6:span ns6:style-name="T5"> %}continue</ns6:span><ns6:span ns6:style-name="T2"> iterati</ns6:span><ns6:span ns6:style-name="T6">ng...{% end</ns6:span><ns6:span ns6:style-name="T3">if</ns6:span><ns6:span ns6:style-name="T2"> %} <ns6:s ns6:c="2" /></ns6:span></ns6:p>
+  </ns0:text>
+</ns0:body>
+</ns0:document-content>
