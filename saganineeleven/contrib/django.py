@@ -1,4 +1,4 @@
-# Copyright 2020 Stepan Bakshayev
+# Copyright 2021 Stepan Bakshayev
 #
 # This file is part of saganineeleven.
 #

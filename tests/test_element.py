@@ -1,4 +1,4 @@
-# Copyright 2020 Stepan Bakshayev
+# Copyright 2021 Stepan Bakshayev
 #
 # This file is part of saganineeleven.
 #
@@ -13,9 +13,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with saganineeleven.  If not, see <https://www.gnu.org/licenses/>.
-#
-# PYTHONPATH=`pwd` python tests/main.py
-#
 from dataclasses import replace
 
 from saganineeleven.straighten import ETC, ShadowElement, compress, elementstr

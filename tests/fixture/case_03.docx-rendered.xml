@@ -10,15 +10,6 @@
     </ns0:pPr>
     <ns0:r><ns0:rPr /><ns0:t>Paragraph</ns0:t></ns0:r>
   </ns0:p>
-  <ns0:p>
-    <ns0:pPr>
-      <ns0:pStyle ns0:val="Normal" />
-      <ns0:bidi ns0:val="0" />
-      <ns0:jc ns0:val="start" />
-      <ns0:rPr />
-    </ns0:pPr>
-    <ns0:r><ns0:rPr /><ns0:t>{{ var1 }}</ns0:t></ns0:r>
-  </ns0:p>
   <ns0:tbl>
     <ns0:tblPr>
       <ns0:tblW ns0:w="9638" ns0:type="dxa" />
@@ -59,15 +50,6 @@
       </ns0:tc>
     </ns0:tr>
   </ns0:tbl>
-  <ns0:p>
-    <ns0:pPr>
-      <ns0:pStyle ns0:val="Normal" />
-      <ns0:bidi ns0:val="0" />
-      <ns0:jc ns0:val="start" />
-      <ns0:rPr />
-    </ns0:pPr>
-    <ns0:r><ns0:rPr /><ns0:t>{{ var2}}</ns0:t></ns0:r>
-  </ns0:p>
   <ns0:p>
     <ns0:pPr>
       <ns0:pStyle ns0:val="Normal" />
