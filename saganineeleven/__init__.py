@@ -1,4 +1,5 @@
 from typing import BinaryIO, Mapping, Callable
+
 from typing_extensions import Protocol
 
 from .straighten import straighten, LexerProtocol
@@ -23,7 +24,7 @@ class TemplateHandler(Protocol):
 
 
 def copy(source, destination):
-	for chunk in iter(lambda: source.read(4*1024), None):
+	for chunk in iter(lambda: source.read(4*1024), b''):
 		destination.write(chunk)
 
 
@@ -37,7 +38,7 @@ def render(
 	with document_handler.create(destination) as archive:
 		for source_file in document_handler.iter(source):
 			with source_file, document_handler.open(archive, source_file.name) as destination_file:
-				if source_file.suffix != '.xml':
+				if not source_file.name.endswith('.xml'):
 					copy(source_file, destination_file)
 					continue
 
@@ -45,6 +46,7 @@ def render(
 				origin_root = origin_tree.getroot()
 				content, line = straighten(origin_root, template_handler.Lexer, document_handler.text_nodes, document_handler.convert)
 				if content is not content.template:
+					source_file.seek(0)
 					copy(source_file, destination_file)
 					continue
 

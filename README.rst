@@ -10,6 +10,36 @@ End user should be aware of implementation details and format specification to g
 Anyway it depends on concrete template. Some users don't fill any difficulties from ordinary template.
 
 
+Usage
+=====
+
+
+Library
+-------
+
+
+.. code-block:: python
+
+    from saganineeleven import render
+    from saganineeleven import contrib
+
+    render(
+        open('source_file.docx', 'rb'),
+        open('destination_file.docx', 'wb'),
+        contrib.docx,
+        contrib.django,
+        {"var1": "Hello,", "var2": ["Prince", 0]}
+    )
+
+
+CLI
+---
+
+.. code-block:: sh
+
+    $ saganineeleven --source case_03.docx --destination case_rendered.docx --document-handler docx --template-handler django --context '{"var1": "Hello,", "var2": ["Prince", 0]}'
+
+
 Licence
 =======
 
