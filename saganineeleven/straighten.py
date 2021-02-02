@@ -19,24 +19,10 @@ from itertools import chain
 from typing import Callable, Iterable, Mapping, Sequence, Tuple
 from xml.etree.ElementTree import Element
 
+from typing_extensions import Protocol
+
 Token = Enum('Event', 'text terminal', module=__name__)
 
-
-# XXX: write this after real lexer
-# class DummyLexer:
-# 	"""
-# 	DummyLexer is sample of Lexer.
-# 	"""
-# 	slots = 'chunk',
-
-# 	def __init__(self):
-# 		self.chunk = None
-
-# 	def feed(self, chunk):
-# 		self.chunk = chunk
-
-# 	def read_events(self):
-# 		return (Token.text, self.chunk),
 
 
 Index = int
@@ -115,6 +101,17 @@ class elementstr(str):
 		return f"<elementstr: '{self!s}', {getattr(self, 'elements', ())}>"
 
 
+class LexerProtocol(Protocol):
+	def feed(self, chunk):
+		...
+
+	def close(self):
+		...
+
+	def read_events(self) -> Iterable[Tuple[Token, elementstr]]:
+		pass
+
+
 ContentType = Enum('ContentType', 'plaintext template', module=__name__)
 
 
@@ -170,7 +167,7 @@ Line = Sequence[Tuple[ElementPointer, str]]
 
 def straighten(
 	root: Element,
-	Lexer,
+	Lexer: LexerProtocol,
 	text_nodes: Mapping[str, int],
 	converter: Callable[[Element], Iterable[Tuple[Path, str]]]
 ) -> Tuple[ContentType, Line]:

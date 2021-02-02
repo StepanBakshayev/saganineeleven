@@ -18,7 +18,7 @@ from operator import attrgetter, itemgetter
 from typing import Callable, Iterator, List, Mapping, Optional, Sequence, Tuple
 from xml.etree.ElementTree import Element
 
-from .straighten import Index, Line, Path
+from .straighten import Index, Line, Path, ElementPointer
 
 
 def get_root(a: Sequence, b: Sequence) -> Sequence:
@@ -196,7 +196,7 @@ class LoopBody:
 	stop: ElementPosition
 
 
-def enforce(source: Element, tape: Line, boundaries: Mapping[Index, Boundary], processor_factory: Callable) -> TreeBuilder:
+def enforce(source: Element, tape: Iterator[Tuple[ElementPointer, str]], boundaries: Mapping[Index, Boundary], processor_factory: Callable) -> TreeBuilder:
 	def iterate_boundaries(boundaries, start, stop):
 		for index in range(start, stop):
 			yield index, boundaries[index]
